@@ -39,3 +39,23 @@ Tecrese is a high-performance, SEO-optimized directory and intelligence platform
 
 ## Deployment Readiness
 The entire codebase has had its domain references migrated to `tecrese.com`. It is 100% ready to be pushed to Vercel. Upon deployment, simply provide the `DATABASE_URL` (Postgres), `BLOB_READ_WRITE_TOKEN`, and `UPSTASH_REDIS_REST_URL`.
+
+## Security & Privacy Hardening (Launch Pass)
+- **Self-hosted fonts:** All three families (Syne, Plus Jakarta Sans, JetBrains Mono) are
+  loaded via `next/font/local` from committed woff2 files in `src/app/fonts/`. The app
+  makes **zero** requests to Google Fonts at build or runtime, so no visitor IP reaches
+  a third party.
+- **No analytics / session replay:** No tracking scripts are installed. Strict CSP
+  (`default-src 'self'`, no third-party origins) actively prevents any from being added.
+- **Hardened HTTP headers** (`next.config.ts` + middleware): Content-Security-Policy,
+  HSTS (`preload`), X-Frame-Options DENY, X-Content-Type-Options nosniff,
+  Referrer-Policy, Permissions-Policy (incl. `interest-cohort=()`), X-DNS-Prefetch-Control off.
+- **IP handling:** `src/lib/request-ip.ts` derives a validated rate-limit identifier from
+  `x-forwarded-for` (first hop) / `x-real-ip` / `cf-connecting-ip`. IPs are used ONLY as
+  rate-limit keys — never stored, returned, or logged.
+- **No info leaks:** Login/CRUD error handlers no longer return raw `error.message` to clients.
+- **Newsletter signup requires age** (validated 13–120, persisted on `NewsletterSubscriber.age`).
+- **Production secrets:** `.env` is gitignored. `AUTH_SECRET` MUST be set to a strong random
+  value in the Vercel environment (the app throws on boot in production if left at the dev default).
+- **Prod DB:** Run `prisma migrate dev` (not `db push`) to generate the Postgres migration for
+  the new `NewsletterSubscriber.age` column before deploying.

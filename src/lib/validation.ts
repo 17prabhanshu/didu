@@ -111,7 +111,14 @@ export const redirectSchema = z.object({
 
 // Newsletter
 export const newsletterSchema = z.object({
-  email: z.string().email('Invalid email address')
+  email: z.string().email('Invalid email address'),
+  // Age is required for signup and must be a plausible human age (13–120).
+  // z.coerce handles the string value coming from FormData / query input.
+  age: z.coerce
+    .number({ error: 'Age is required' })
+    .int('Age must be a whole number')
+    .min(13, 'You must be at least 13 years old to subscribe')
+    .max(120, 'Please enter a valid age'),
 })
 
 // Media

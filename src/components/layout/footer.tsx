@@ -94,12 +94,26 @@ export function Footer() {
             </ul>
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-foreground">Subscribe to our newsletter</h4>
-              <form className="flex gap-2" action="/api/newsletter" method="post">
+              <form className="flex flex-col gap-2" action="/api/newsletter" method="post">
+                <label htmlFor="newsletter-email" className="sr-only">Email address</label>
                 <input
+                  id="newsletter-email"
                   type="email"
                   name="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-3 py-2 text-sm bg-muted/50 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full px-3 py-2 text-sm bg-muted/50 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  required
+                />
+                <label htmlFor="newsletter-age" className="sr-only">Your age</label>
+                <input
+                  id="newsletter-age"
+                  type="number"
+                  name="age"
+                  inputMode="numeric"
+                  min={13}
+                  max={120}
+                  placeholder="Your age (13+)"
+                  className="w-full px-3 py-2 text-sm bg-muted/50 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   required
                 />
                 <button
@@ -109,6 +123,7 @@ export function Footer() {
                   Subscribe
                 </button>
               </form>
+              <p className="text-xs text-muted-foreground">You must be 13 or older to subscribe.</p>
             </div>
           </div>
         </div>

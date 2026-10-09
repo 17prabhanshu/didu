@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { createSession } from "@/lib/session";
 import bcrypt from "bcryptjs";
 import { Redis } from "@upstash/redis";
+import { getClientIdentifier } from "@/lib/request-ip";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -25,7 +26,7 @@ const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const ip = getClientIdentifier(req);
     
     // 1. Check Rate Limit
     if (redis) {
@@ -65,8 +66,20 @@ export async function POST(req: Request) {
     
     await createSession(user.id, user.role);
     return NextResponse.json({ success: true, data: { id: user.id, email: user.email, name: user.name, role: user.role } });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: { message: error.message } }, { status: 400 });
+  } catch (error: unknown) {
+    // SECURITY: Do not leak internal error details (e.g. Zod messages, DB errors)
+    // to the client. Only surface validation problems for malformed input.
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: { message: "Invalid email or password format." } },
+        { status: 400 }
+      );
+    }
+    console.error("Login error:", error);
+    return NextResponse.json(
+      { success: false, error: { message: "Something went wrong. Please try again." } },
+      { status: 500 }
+    );
   }
 }
 

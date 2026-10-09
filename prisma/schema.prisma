@@ -430,6 +430,7 @@ model AuditLog {
 model NewsletterSubscriber {
   id             String    @id @default(cuid())
   email          String    @unique
+  age            Int?
   status         String    // ACTIVE, UNSUBSCRIBED
   subscribedAt   DateTime?
   unsubscribedAt DateTime?

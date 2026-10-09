@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
+import { getClientIdentifier } from "@/lib/request-ip";
 
 // SECURITY PATCH: Rate limiter to prevent bot spam
 const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
@@ -8,7 +9,7 @@ const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const ip = getClientIdentifier(req);
     const record = rateLimitMap.get(ip);
     
     if (record) {

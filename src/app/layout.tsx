@@ -1,13 +1,29 @@
 import type { Metadata } from "next";
-import { Syne, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+// PRIVACY/SECURITY: Fonts are self-hosted via next/font/local. The woff2 files in
+// ./fonts were downloaded from Google Fonts once and committed to the repo, so the
+// app never contacts fonts.googleapis.com / fonts.gstatic.com at build OR runtime.
+// This prevents any visitor IP from ever reaching Google's servers.
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 
-const syne = Syne({ subsets: ["latin"], variable: "--font-heading" });
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans" });
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+const syne = localFont({
+  src: "./fonts/syne-latin.woff2",
+  variable: "--font-heading",
+  display: "swap",
+  weight: "400 800",
+});
+const jakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
+  variable: "--font-sans",
+  display: "swap",
+  weight: "200 800",
+});
+const jetbrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
   variable: "--font-mono",
+  display: "swap",
+  weight: "100 800",
 });
 
 export const metadata: Metadata = {
