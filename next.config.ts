@@ -15,25 +15,37 @@ const nextConfig: NextConfig = {
     position: 'bottom-right'
   },
   async headers() {
-    // Content-Security-Policy tuned for this app:
-    // - No third-party origins allowed (self-hosting fonts + no analytics means
-    //   a strict CSP is viable and blocks data exfiltration / IP-leaking requests).
-    // - 'unsafe-inline' for styles is required by Next.js/Tailwind runtime styles.
-    // - 'unsafe-inline' for scripts is needed for Next's inline bootstrap + JSON-LD;
-    //   'unsafe-eval' is intentionally NOT enabled.
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    // Content-Security-Policy tuned for this app.
+    //
+    // PRODUCTION (strict): no third-party origins are allowed. Self-hosted fonts
+    // and the absence of analytics make a tight CSP viable, which blocks data
+    // exfiltration / IP-leaking requests. 'unsafe-eval' is NOT allowed in prod.
+    //
+    // DEVELOPMENT (relaxed only where required): React explicitly requires eval()
+    // in dev for debugging features, and Next.js HMR opens a WebSocket. Without
+    // these the client bundle fails to execute and the page never hydrates
+    // (the server HTML is fine, but the browser shows a broken/blank page).
+    const scriptSrc = isDev
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+      : "script-src 'self' 'unsafe-inline'";
+    const connectSrc = isDev
+      ? "connect-src 'self' ws: wss:"
+      : "connect-src 'self'";
+
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self'",
+      connectSrc,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
-    ].join("; ");
+    ].join("; ") + (isDev ? "" : "; upgrade-insecure-requests");
 
     return [
       {
