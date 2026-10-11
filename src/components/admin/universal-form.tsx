@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Save, UploadCloud, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import NextImage from "next/image";
 
 // Custom Image Uploader Component
 function ImageUploader({ value, onChange }: { value: string, onChange: (url: string) => void }) {
@@ -39,7 +40,7 @@ function ImageUploader({ value, onChange }: { value: string, onChange: (url: str
     <div className="mt-1 flex items-center gap-4">
       {value && (
         <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-border bg-muted/50 flex-shrink-0">
-          <img src={value} alt="Preview" className="w-full h-full object-cover" />
+          <NextImage src={value} alt="Preview" width={80} height={80} className="w-full h-full object-cover" unoptimized={value.startsWith('data:') || value.startsWith('blob:')} />
         </div>
       )}
       <div 

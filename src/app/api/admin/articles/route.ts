@@ -1,9 +1,30 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const articles = await db.article.findMany({ orderBy: { createdAt: 'desc' } });
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const take = 50;
+    const skip = (page - 1) * take;
+
+    const articles = await db.article.findMany({
+      orderBy: { createdAt: 'desc' },
+      take,
+      skip,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        status: true,
+        contentType: true,
+        createdAt: true,
+        updatedAt: true,
+        author: {
+          select: { name: true }
+        }
+      }
+    });
     return NextResponse.json({ success: true, data: articles });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });
@@ -13,7 +34,20 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const slug = body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    
+    // Find first available author or fall back to an editorial author
+    let author = await db.author.findFirst();
+    if (!author) {
+      author = await db.author.create({
+        data: {
+          name: "Tecrese Editorial",
+          slug: "tecrese-editorial",
+          bio: "Official Tecrese Editorial Team"
+        }
+      });
+    }
+
     const article = await db.article.create({
       data: {
         title: body.title,
@@ -21,7 +55,7 @@ export async function POST(req: Request) {
         body: body.body || body.content || "",
         contentType: body.contentType || "ARTICLE",
         status: body.status || "DRAFT",
-        authorId: "1" // Stub
+        authorId: body.authorId || author.id
       }
     });
     return NextResponse.json({ success: true, data: article });

@@ -1,36 +1,150 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tecrese (formerly Agentverse)
 
-## Getting Started
+AI Agent & Tool Directory Platform - "Substack meets Awwwards" for the agentic ecosystem.
 
-First, run the development server:
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your values
+
+# Generate Prisma client
+npm run db:generate
+
+# Push schema to database
+npm run db:push
+
+# Seed database (requires ADMIN_EMAIL, ADMIN_PASSWORD in .env)
+npm run db:seed
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📦 Production Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+1. **PostgreSQL Database** (Supabase, Neon, Railway, etc.) with connection pooling
+2. **Vercel Account** for hosting
+3. **Vercel Blob** for file storage
+4. **Upstash Redis** for distributed rate limiting
 
-## Learn More
+### Required Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string with pgbouncer | ✅ |
+| `AUTH_SECRET` | 32+ char random string (`openssl rand -base64 32`) | ✅ |
+| `ADMIN_EMAIL` | Admin user email | ✅ |
+| `ADMIN_PASSWORD` | Secure admin password | ✅ |
+| `NEXT_PUBLIC_SITE_URL` | Production URL (e.g., `https://tecrese.com`) | ✅ |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token | ✅ |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL | ✅ |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token | ✅ |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Deploy to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push to GitHub
+2. Import project in Vercel
+3. Add all environment variables in Vercel Dashboard
+4. Deploy
 
-## Deploy on Vercel
+### Database Migration (Run Once Before First Deploy)
+```bash
+# Create migration for NewsletterSubscriber.age column
+npx prisma migrate dev --name add_newsletter_age
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# In CI/CD, use:
+npx prisma migrate deploy
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🧪 Testing
+
+```bash
+# Unit tests
+npm run test
+
+# Unit tests with UI
+npm run test:ui
+
+# E2E tests
+npm run test:e2e
+
+# E2E tests with UI
+npm run test:e2e:ui
+```
+
+## 🔒 Security Features
+
+- **Authentication**: bcrypt(12) + JWT(HS256, 30min) + HTTP-only volatile cookies
+- **Authorization**: RBAC (SUPER_ADMIN, EDITOR, AUTHOR, CONTRIBUTOR, REVIEWER)
+- **Rate Limiting**: Upstash Redis (prod) / in-memory (dev) - 5 req/15min on auth, 3/hr contact, 5/hr newsletter
+- **Security Headers**: CSP, HSTS, X-Frame-Options, COOP, CORP, COEP, Permissions-Policy
+- **Input Validation**: Zod schemas on ALL API boundaries
+- **File Upload**: Magic byte validation + extension allowlist + Vercel Blob
+- **E-E-A-T Masking**: Auto-scrubs "guest poster" → "Contributing Analyst"
+- **Link Neutralization**: Auto-nofollow on external links
+- **No Tracking**: Self-hosted fonts, no analytics, strict CSP
+- **Privacy-Safe IP**: IPs never persisted, only used for rate-limit keys
+
+## 📁 Project Structure
+
+```
+├── .github/workflows/     # CI/CD pipeline
+├── e2e/                   # Playwright E2E tests
+├── prisma/
+│   ├── schema.prisma      # Database schema
+│   └── seed.ts            # Seed data
+├── public/                # Static assets
+├── src/
+│   ├── app/               # Next.js App Router
+│   │   ├── (public)/      # Public routes
+│   │   ├── admin/         # Admin panel (protected)
+│   │   ├── api/           # API routes
+│   │   └── ...
+│   ├── components/        # React components
+│   ├── lib/               # Utilities
+│   │   ├── auth.ts        # Password hashing, JWT
+│   │   ├── session.ts     # Session management
+│   │   ├── db.ts          # Prisma client
+│   │   ├── rate-limit.ts  # Rate limiting
+│   │   ├── validation.ts  # Zod schemas
+│   │   └── ...
+│   └── ...
+├── vitest.config.ts       # Vitest config
+├── playwright.config.ts   # Playwright config
+└── ...
+```
+
+## 🛠 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | TypeScript type check |
+| `npm run test` | Run unit tests |
+| `npm run test:e2e` | Run E2E tests |
+| `npm run db:generate` | Generate Prisma client |
+| `npm run db:push` | Push schema to DB |
+| `npm run db:migrate` | Run migrations |
+| `npm run db:seed` | Seed database |
+| `npm run db:studio` | Open Prisma Studio |
+
+## 🔐 Admin Access
+
+1. Navigate to `/admin/login`
+2. Use credentials from `ADMIN_EMAIL` / `ADMIN_PASSWORD`
+3. First login requires password change (`mustChangePassword: true`)
+
+## 📝 License
+
+Private - All rights reserved.

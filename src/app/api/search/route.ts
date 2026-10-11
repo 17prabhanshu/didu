@@ -18,9 +18,9 @@ export async function GET(req: Request) {
         where: {
           status: 'PUBLISHED',
           OR: [
-            { title: { contains: searchTerm } },
-            { body: { contains: searchTerm } },
-            { excerpt: { contains: searchTerm } },
+            { title: { contains: searchTerm, mode: 'insensitive' } },
+            { body: { contains: searchTerm, mode: 'insensitive' } },
+            { excerpt: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
         take: 5,
@@ -30,8 +30,8 @@ export async function GET(req: Request) {
         where: {
           status: 'PUBLISHED',
           OR: [
-            { name: { contains: searchTerm } },
-            { description: { contains: searchTerm } },
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { description: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
         take: 3,
@@ -41,8 +41,8 @@ export async function GET(req: Request) {
         where: {
           status: 'PUBLISHED',
           OR: [
-            { name: { contains: searchTerm } },
-            { description: { contains: searchTerm } },
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { description: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
         take: 3,
@@ -52,8 +52,8 @@ export async function GET(req: Request) {
         where: {
           status: 'ACTIVE',
           OR: [
-            { name: { contains: searchTerm } },
-            { provider: { contains: searchTerm } },
+            { name: { contains: searchTerm, mode: 'insensitive' } },
+            { provider: { contains: searchTerm, mode: 'insensitive' } },
           ],
         },
         take: 3,

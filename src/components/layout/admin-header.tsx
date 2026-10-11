@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Bell, User, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export function AdminHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
   const pathname = usePathname();
@@ -60,7 +61,7 @@ export function AdminHeader({ toggleSidebar }: { toggleSidebar: () => void }) {
           >
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium border border-primary/30 overflow-hidden">
               {user?.avatar ? (
-                <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                <Image src={user.avatar} alt={displayName} width={32} height={32} className="w-full h-full object-cover" />
               ) : (
                 initials
               )}

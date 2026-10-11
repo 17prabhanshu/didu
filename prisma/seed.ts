@@ -7,7 +7,13 @@ async function main() {
   console.log('🌱 Seeding database...')
 
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@tecrese.com'
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
+  
+  // SECURITY: Require ADMIN_PASSWORD in production, no weak defaults
+  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+    throw new Error('CRITICAL SECURITY ERROR: ADMIN_PASSWORD must be set in production environment variables.')
+  }
+  
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dev-only-change-me'
   const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12)
 
   // 1. Admin User

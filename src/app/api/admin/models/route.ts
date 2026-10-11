@@ -4,7 +4,8 @@ import { db } from '@/lib/db'
 export async function GET(req: Request) {
   try {
     const models = await db.model.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 50
     })
     return NextResponse.json(models)
   } catch (error) {

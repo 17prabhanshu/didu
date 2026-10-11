@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { TiltCard } from "@/components/animations/tilt-card";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";

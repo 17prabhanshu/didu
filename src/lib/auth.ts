@@ -6,9 +6,10 @@ if (process.env.NODE_ENV === 'production' && (!process.env.AUTH_SECRET || proces
   throw new Error("CRITICAL SECURITY ERROR: AUTH_SECRET must be set in production environment variables.");
 }
 const SESSION_DURATION = 30 * 60 // 30 minutes in seconds
+const BCRYPT_SALT_ROUNDS = 12 // OWASP recommends 12+
 
 export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10)
+  const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS)
   return bcrypt.hash(password, salt)
 }
 

@@ -1,13 +1,23 @@
+export const dynamic = 'force-dynamic';
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, ExternalLink, ShieldCheck, Cpu } from "lucide-react";
+import { generateMetadata as getSeoMetadata, generateEntityStructuredData } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const agent = await db.agent.findUnique({ where: { slug } });
-  return { title: agent ? `${agent.name} | Agentverse` : 'Agent Not Found' };
+  if (!agent) return { title: 'Agent Not Found | Tecrese' };
+
+  return getSeoMetadata({
+    title: `${agent.name} - AI Agent Review, Capabilities & Architecture`,
+    description: agent.description || `Comprehensive overview and technical capabilities of ${agent.name}.`,
+    slug: `/agents/${agent.slug}`,
+    image: agent.logoUrl || '/og-image.jpg'
+  });
 }
 
 export default async function AgentPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -24,15 +34,28 @@ export default async function AgentPage({ params }: { params: Promise<{ slug: st
   const capabilities = typeof agent.capabilities === 'string' ? JSON.parse(agent.capabilities) : agent.capabilities || [];
   const integrations = typeof agent.integrations === 'string' ? JSON.parse(agent.integrations) : agent.integrations || [];
 
+  const jsonLd = generateEntityStructuredData({
+    name: agent.name,
+    description: agent.description || '',
+    image: agent.logoUrl || undefined,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'}/agents/${agent.slug}`,
+    type: 'SoftwareApplication',
+    category: agent.category?.name || 'Autonomous Agent'
+  });
+
   return (
     <div className="relative min-h-screen pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Dynamic Background Orb */}
       <div className="absolute top-0 right-1/4 w-[40vw] h-[40vw] bg-[radial-gradient(circle,var(--tw-gradient-stops))] from-primary/10 via-primary/5 to-transparent mix-blend-multiply pointer-events-none -z-10" />
 
       {/* Header Banner */}
       <div className="w-full h-[30vh] sm:h-[40vh] relative overflow-hidden bg-muted border-b border-border">
         {agent.logoUrl ? (
-           <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-cover opacity-50 blur-sm scale-105" />
+           <Image src={agent.logoUrl} alt={agent.name} fill className="object-cover opacity-50 blur-sm scale-105" unoptimized />
         ) : (
            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20" />
         )}
@@ -46,9 +69,9 @@ export default async function AgentPage({ params }: { params: Promise<{ slug: st
           </Link>
 
           <div className="bg-card/80 backdrop-blur-xl border border-border p-8 md:p-12 rounded-[3rem] shadow-2xl mb-12 flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-32 h-32 md:w-48 md:h-48 shrink-0 rounded-3xl overflow-hidden bg-background border border-border shadow-inner p-4 flex items-center justify-center">
+            <div className="w-32 h-32 md:w-48 md:h-48 shrink-0 rounded-3xl overflow-hidden bg-background border border-border shadow-inner p-4 flex items-center justify-center relative">
               {agent.logoUrl ? (
-                <img src={agent.logoUrl} alt={agent.name} className="w-full h-full object-contain rounded-xl" />
+                <Image src={agent.logoUrl} alt={agent.name} width={192} height={192} className="w-full h-full object-contain rounded-xl" unoptimized />
               ) : (
                 <span className="font-heading font-bold text-5xl text-primary">{agent.name.charAt(0)}</span>
               )}

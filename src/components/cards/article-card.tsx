@@ -19,7 +19,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
     <Link href={"/news/" + article.slug} className="group flex flex-col rounded-xl overflow-hidden border border-border bg-card hover:shadow-lg transition-all hover:-translate-y-1">
       <div className="relative aspect-video bg-muted overflow-hidden">
         {article.featuredImage ? (
-          <Image src={article.featuredImage} alt={article.title} fill className="object-cover transition-transform group-hover:scale-105" />
+          <Image src={article.featuredImage} alt={article.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform group-hover:scale-105" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-500" />
         )}

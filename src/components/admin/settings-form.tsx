@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Mail, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function SettingsForm({ user }: { user: any }) {
   const router = useRouter();
@@ -78,7 +79,7 @@ export function SettingsForm({ user }: { user: any }) {
       <div className="flex items-center gap-6 mb-8">
         <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center text-3xl font-bold text-primary border-4 border-background shadow-lg overflow-hidden relative group">
           {formData.avatar ? (
-             <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+             <Image src={formData.avatar} alt="Avatar" width={96} height={96} className="w-full h-full object-cover" />
           ) : (
              <span className="uppercase">{formData.name ? formData.name.substring(0, 2) : "AD"}</span>
           )}

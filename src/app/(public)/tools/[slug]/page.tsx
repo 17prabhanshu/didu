@@ -1,13 +1,23 @@
+export const dynamic = 'force-dynamic';
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, ExternalLink, Code } from "lucide-react";
+import { generateMetadata as getSeoMetadata, generateEntityStructuredData } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const tool = await db.tool.findUnique({ where: { slug } });
-  return { title: tool ? `${tool.name} | Agentverse` : 'Tool Not Found' };
+  if (!tool) return { title: 'Tool Not Found | Tecrese' };
+  
+  return getSeoMetadata({
+    title: `${tool.name} - AI Developer Tool Review & Specs`,
+    description: tool.description || `Explore ${tool.name} developer tool details, specifications, and architecture.`,
+    slug: `/tools/${tool.slug}`,
+    image: tool.logoUrl || '/og-image.jpg'
+  });
 }
 
 export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,13 +30,26 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
   if (!tool) return notFound();
 
+  const jsonLd = generateEntityStructuredData({
+    name: tool.name,
+    description: tool.description || '',
+    image: tool.logoUrl || undefined,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'}/tools/${tool.slug}`,
+    type: 'SoftwareApplication',
+    category: tool.category?.name || 'Developer Tool'
+  });
+
   return (
     <div className="relative min-h-screen pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="absolute top-0 right-1/4 w-[40vw] h-[40vw] bg-[radial-gradient(circle,var(--tw-gradient-stops))] from-blue-500/10 via-blue-500/5 to-transparent mix-blend-multiply pointer-events-none -z-10" />
 
       <div className="w-full h-[30vh] sm:h-[40vh] relative overflow-hidden bg-muted border-b border-border">
         {tool.logoUrl ? (
-           <img src={tool.logoUrl} alt={tool.name} className="w-full h-full object-cover opacity-50 blur-sm scale-105" />
+           <Image src={tool.logoUrl} alt={tool.name} fill className="object-cover opacity-50 blur-sm scale-105" unoptimized />
         ) : (
            <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20" />
         )}
@@ -40,9 +63,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </Link>
 
           <div className="bg-card/80 backdrop-blur-xl border border-border p-8 md:p-12 rounded-[3rem] shadow-2xl mb-12 flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-32 h-32 md:w-48 md:h-48 shrink-0 rounded-3xl overflow-hidden bg-background border border-border shadow-inner p-4 flex items-center justify-center">
+            <div className="w-32 h-32 md:w-48 md:h-48 shrink-0 rounded-3xl overflow-hidden bg-background border border-border shadow-inner p-4 flex items-center justify-center relative">
               {tool.logoUrl ? (
-                <img src={tool.logoUrl} alt={tool.name} className="w-full h-full object-contain rounded-xl" />
+                <Image src={tool.logoUrl} alt={tool.name} width={192} height={192} className="w-full h-full object-contain rounded-xl" unoptimized />
               ) : (
                 <span className="font-heading font-bold text-5xl text-blue-500">{tool.name.charAt(0)}</span>
               )}

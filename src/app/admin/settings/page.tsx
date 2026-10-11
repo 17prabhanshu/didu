@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { User, Mail, Shield, Key, Smartphone, Globe } from "lucide-react";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { getSession } from "@/lib/session";

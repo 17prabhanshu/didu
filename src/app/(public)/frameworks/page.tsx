@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { db } from "@/lib/db";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { TiltCard } from "@/components/animations/tilt-card";

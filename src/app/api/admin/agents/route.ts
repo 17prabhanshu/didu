@@ -4,7 +4,8 @@ import { db } from '@/lib/db'
 export async function GET(req: Request) {
   try {
     const agents = await db.agent.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 50
     })
     return NextResponse.json(agents)
   } catch (error) {
