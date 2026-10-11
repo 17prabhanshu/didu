@@ -39,7 +39,7 @@ export default async function AdminArticlesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
-              {articles.map((article: any) => {
+              {articles.map((article) => {
                 return (
                   <tr key={article.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="p-4">

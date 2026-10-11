@@ -36,8 +36,8 @@ export default function AdminLoginPage() {
       
       // Successfully authenticated, navigate to dashboard
       router.push("/admin");
-    } catch (err: any) {
-      setError(err.message || "Authentication failed. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }

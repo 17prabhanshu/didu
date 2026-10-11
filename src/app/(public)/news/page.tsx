@@ -39,7 +39,7 @@ export default async function NewsPage() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article: any, i: number) => (
+          {articles.map((article, i: number) => (
             <ScrollReveal key={article.id} delay={i * 0.1}>
               <Link href={`/news/${article.slug}`}>
                 <TiltCard className="h-full">

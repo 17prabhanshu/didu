@@ -34,7 +34,7 @@ export default async function ModelsPage() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {models.map((model: any, i: number) => (
+          {models.map((model, i: number) => (
             <ScrollReveal key={model.id} delay={i * 0.1}>
               <Link href={`/models/${model.slug}`}>
                 <TiltCard className="h-full">
@@ -51,7 +51,7 @@ export default async function ModelsPage() {
                     <div className="p-8 pt-4 flex flex-col h-full relative">
                       <div className="flex justify-between items-start mb-6">
                         <div className="w-16 h-16 rounded-2xl bg-card border border-border/50 flex items-center justify-center overflow-hidden -mt-12 shadow-lg relative z-10">
-                           <span className="font-heading text-2xl font-bold text-secondary-foreground">{model.provider.charAt(0)}</span>
+                           <span className="font-heading text-2xl font-bold text-secondary-foreground">{model.provider?.charAt(0) || 'M'}</span>
                         </div>
                         <Badge variant="secondary" className="rounded-full px-3 py-1 font-mono text-xs bg-accent/10 text-accent z-10">
                           {model.contextWindow ? `${Math.round(model.contextWindow / 1000)}k Context` : 'Unknown Context'}
@@ -60,7 +60,7 @@ export default async function ModelsPage() {
                       
                       <h3 className="font-heading text-2xl font-bold mb-1">{model.name}</h3>
                       <p className="text-muted-foreground text-sm font-bold tracking-widest uppercase mb-4 opacity-70">
-                        {model.provider}
+                        {model.provider || 'Unknown Provider'}
                       </p>
                       
                       <div className="flex flex-wrap items-center gap-2 mt-auto pt-4 border-t border-border/30">

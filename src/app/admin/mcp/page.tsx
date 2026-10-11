@@ -11,7 +11,7 @@ export default async function McpAdminPage() {
   
   const flattenedData = data.map((d: any) => ({
     ...d,
-    categoryName: d.category?.name || d.category || "Uncategorized" // Handle relational object or string
+    categoryName: d.category && typeof d.category === 'object' && 'name' in d.category ? d.category.name : d.category || "Uncategorized"
   }));
 
   const columns = [

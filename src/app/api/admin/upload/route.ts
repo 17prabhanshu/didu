@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     // Also validate extension as a secondary check
-    let originalExt = (file.name.split('.').pop() || '').toLowerCase();
+    const originalExt = (file.name.split('.').pop() || '').toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(originalExt)) {
       return NextResponse.json({ error: "Invalid file extension." }, { status: 400 });
     }

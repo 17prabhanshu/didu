@@ -1,18 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { hashPassword, verifyPassword, generateToken, verifyToken } from '@/lib/auth'
-
-// Mock bcryptjs
-vi.mock('bcryptjs', () => ({
-  hash: vi.fn().mockResolvedValue('hashed-password'),
-  compare: vi.fn().mockResolvedValue(true),
-  genSalt: vi.fn().mockResolvedValue('salt'),
-}))
-
-// Mock jsonwebtoken
-vi.mock('jsonwebtoken', () => ({
-  sign: vi.fn().mockReturnValue('mock-jwt-token'),
-  verify: vi.fn().mockReturnValue({ userId: 'test-user-id', role: 'SUPER_ADMIN' }),
-}))
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 describe('Auth Library', () => {
   beforeEach(() => {
@@ -34,7 +23,6 @@ describe('Auth Library', () => {
     })
 
     it('should return false for incorrect password', async () => {
-      const bcrypt = await import('bcryptjs')
       vi.mocked(bcrypt.compare).mockResolvedValueOnce(false)
       const result = await verifyPassword('WrongPassword', 'hashed-password')
       expect(result).toBe(false)
@@ -55,8 +43,7 @@ describe('Auth Library', () => {
       expect(result).toEqual({ userId: 'test-user-id', role: 'SUPER_ADMIN' })
     })
 
-    it('should return null for invalid token', () => {
-      const jwt = await import('jsonwebtoken')
+    it('should return null for invalid token', async () => {
       vi.mocked(jwt.verify).mockImplementationOnce(() => {
         throw new Error('Invalid token')
       })

@@ -8,6 +8,7 @@ describe('Health API', () => {
   })
 
   it('should return healthy status when database is connected', async () => {
+    // Mock $queryRaw on the db object
     vi.mocked(db.$queryRaw).mockResolvedValueOnce([{ '?column?': 1 }])
 
     const response = await GET()

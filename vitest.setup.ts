@@ -28,6 +28,7 @@ vi.mock('next/headers', () => ({
 // Mock Prisma
 vi.mock('@/lib/db', () => ({
   db: {
+    $queryRaw: vi.fn(),
     user: {
       findUnique: vi.fn(),
       create: vi.fn(),

@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { db } from './db'
 import { verifyToken, generateToken, getSessionExpiryDate } from './auth'
 
@@ -81,8 +82,7 @@ export async function requireAuth(): Promise<SessionData> {
   const session = await getSession()
 
   if (!session) {
-    const nav = require('next/navigation');
-    nav.redirect('/admin/login');
+    redirect('/admin/login');
   }
 
   return session as SessionData;

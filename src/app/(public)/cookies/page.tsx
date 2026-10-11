@@ -23,10 +23,10 @@ export default function CookiesPage() {
 
             <h2>1. What are cookies?</h2>
             <p>Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners in order to make their websites work, or to work more efficiently, as well as to provide reporting information.</p>
-            <p>Cookies set by the website owner (in this case, Agentverse) are called "first-party cookies". Cookies set by parties other than the website owner are called "third-party cookies".</p>
+            <p>Cookies set by the website owner (in this case, Agentverse) are called &ldquo;first-party cookies&rdquo;. Cookies set by parties other than the website owner are called &ldquo;third-party cookies&rdquo;.</p>
 
             <h2>2. Why do we use cookies?</h2>
-            <p>We use first-party and third-party cookies for several reasons. Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as "essential" or "strictly necessary" cookies. Other cookies also enable us to track and target the interests of our users to enhance the experience on our Website.</p>
+            <p>We use first-party and third-party cookies for several reasons. Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as &ldquo;essential&rdquo; or &ldquo;strictly necessary&rdquo; cookies. Other cookies also enable us to track and target the interests of our users to enhance the experience on our Website.</p>
 
             <h3>Essential Cookies</h3>
             <p>These cookies are strictly necessary to provide you with services available through our Website and to use some of its features, such as access to secure areas.</p>

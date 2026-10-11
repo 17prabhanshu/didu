@@ -18,14 +18,14 @@ export default function TermsPage() {
         <ScrollReveal delay={0.1}>
           <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-heading prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-a:text-primary">
             <p className="lead text-xl">
-              Welcome to Agentverse. These Terms of Service ("Terms") govern your use of the Agentverse website, platform, and related services (collectively, the "Services"). By accessing or using our Services, you agree to be bound by these Terms.
+              Welcome to Agentverse. These Terms of Service (&ldquo;Terms&rdquo;) govern your use of the Agentverse website, platform, and related services (collectively, the &ldquo;Services&rdquo;). By accessing or using our Services, you agree to be bound by these Terms.
             </p>
 
             <h2>1. Acceptance of Terms</h2>
             <p>By accessing this website, we assume you accept these terms and conditions. Do not continue to use Agentverse if you do not agree to take all of the terms and conditions stated on this page.</p>
 
             <h2>2. Guest Posting & Content Contributions</h2>
-            <p>Users may submit articles, guides, and other content ("Contributions") via our Guest Posting system. By submitting a Contribution, you agree to the following:</p>
+            <p>Users may submit articles, guides, and other content (&ldquo;Contributions&rdquo;) via our Guest Posting system. By submitting a Contribution, you agree to the following:</p>
             <ul>
               <li><strong>Originality:</strong> Your Contribution must be original and not plagiarized or spun from other sources.</li>
               <li><strong>License:</strong> You grant Agentverse a perpetual, worldwide, non-exclusive, royalty-free license to use, reproduce, edit, publish, and distribute your Contribution.</li>

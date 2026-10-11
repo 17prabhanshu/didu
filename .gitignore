@@ -31,6 +31,8 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+dev_debug.log
+dev_error.log
 
 # Testing
 coverage/
@@ -48,3 +50,28 @@ prisma/migrations/
 
 # Uploads (dev only)
 public/uploads/
+
+# Temporary/Generated files
+.metadata_never_index
+testpack-*.idx
+testpack-*.pack
+testpack-*.rev
+*.scripts-to-add.json
+finalCC.md
+CLAUDE.md
+AGENTS.md
+PROJECT_CONTEXT.md
+
+# Root scripts (moved to scripts/)
+*.js
+*.ts
+!vitest.config.ts
+!vitest.setup.ts
+!eslint.config.mjs
+!next.config.ts
+!postcss.config.mjs
+!tailwind.config.js
+!tailwind.config.ts
+
+# Seed files (should be in prisma/)
+seed_*.ts

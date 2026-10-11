@@ -33,7 +33,7 @@ export default async function SecurityPage() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {alerts.map((alert: any, i: number) => (
+          {alerts.map((alert, i: number) => (
             <ScrollReveal key={alert.id} delay={i * 0.1}>
               <Link href={`/security/${alert.slug}`}>
                 <TiltCard className="h-full">
@@ -67,7 +67,7 @@ export default async function SecurityPage() {
                           <Badge variant="outline" className="rounded-full text-xs font-mono">{alert.cveId}</Badge>
                         )}
                         <span className="text-xs text-muted-foreground ml-auto">
-                          {new Date(alert.publishedAt).toLocaleDateString()}
+                          {alert.publishedAt ? new Date(alert.publishedAt).toLocaleDateString() : 'Unknown Date'}
                         </span>
                       </div>
                     </div>

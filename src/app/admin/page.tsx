@@ -9,7 +9,7 @@ export const metadata = { title: 'Dashboard | Adminverse' };
 export default async function AdminDashboardPage() {
   await requireAuth();
 
-  let stats = { articles: 0, agents: 0, tools: 0, models: 0, users: 0 };
+  const stats = { articles: 0, agents: 0, tools: 0, models: 0, users: 0 };
   let recentArticles: any[] = [];
   let recentUsers: any[] = [];
   

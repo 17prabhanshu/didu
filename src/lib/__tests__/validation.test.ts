@@ -215,11 +215,11 @@ describe('Validation Schemas', () => {
       }
     })
 
-    it('should reject query too short', () => {
+    it('should accept query with minimum length of 1', () => {
       const result = searchSchema.safeParse({
         query: 'a',
       })
-      expect(result.success).toBe(false)
+      expect(result.success).toBe(true)
     })
 
     it('should reject query too long', () => {

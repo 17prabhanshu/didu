@@ -12,7 +12,7 @@ export async function GET() {
     })
 
     const rssItems = articles
-      .map((article: any) => {
+      .map((article) => {
         const folder = article.contentType === 'GUIDE' ? 'guides' : 'news'
         const url = `${SITE_URL}/${folder}/${article.slug}`
         const date = article.publishedAt 

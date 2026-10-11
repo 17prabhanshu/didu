@@ -12,7 +12,7 @@ export default function EditorialPolicyPage() {
 
         <h2 className="text-2xl font-bold mt-12 mb-4">1. No Unsolicited Guest Posts</h2>
         <p className="mb-6">
-          To maintain the highest caliber of research, <strong>we do not accept unsolicited guest posts, paid insertions, or sponsored "dofollow" link placements</strong>. All content published on Agentverse is rigorously reviewed by our internal Industry Analysts and intelligence team.
+          To maintain the highest caliber of research, <strong>we do not accept unsolicited guest posts, paid insertions, or sponsored &ldquo;dofollow&rdquo; link placements</strong>. All content published on Agentverse is rigorously reviewed by our internal Industry Analysts and intelligence team.
         </p>
 
         <h2 className="text-2xl font-bold mt-12 mb-4">2. Editorial Independence</h2>

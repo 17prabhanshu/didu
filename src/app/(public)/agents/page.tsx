@@ -32,7 +32,7 @@ export default async function AgentsPage() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {agents.map((agent: any, i: number) => (
+          {agents.map((agent, i: number) => (
             <ScrollReveal key={agent.id} delay={i * 0.1}>
               <Link href={`/agents/${agent.slug}`}>
                 <TiltCard className="h-full">

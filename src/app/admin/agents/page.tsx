@@ -10,7 +10,7 @@ export default async function AgentsAdminPage() {
   }).catch(() => []); // Fallback for DB errors
 
   
-  const flattenedData = data.map((d: any) => ({
+  const flattenedData = data.map((d) => ({
     ...d,
     categoryName: d.category?.name || d.category || "Uncategorized" // Handle relational object or string
   }));

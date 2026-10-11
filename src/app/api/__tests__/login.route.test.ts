@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/auth/login/route'
 import { db } from '@/lib/db'
+import bcrypt from 'bcryptjs'
 
 describe('Login API', () => {
   beforeEach(() => {
@@ -51,7 +52,6 @@ describe('Login API', () => {
       deletedAt: null,
     })
 
-    const bcrypt = await import('bcryptjs')
     vi.mocked(bcrypt.compare).mockResolvedValueOnce(false)
 
     const request = new NextRequest('http://localhost/api/auth/login', {
@@ -80,7 +80,6 @@ describe('Login API', () => {
       deletedAt: null,
     })
 
-    const bcrypt = await import('bcryptjs')
     vi.mocked(bcrypt.compare).mockResolvedValueOnce(true)
 
     const request = new NextRequest('http://localhost/api/auth/login', {

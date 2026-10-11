@@ -8,28 +8,32 @@ import { revalidatePath } from "next/cache";
 const models = Prisma.dmmf.datamodel.models;
 
 export async function GET(req: Request) {
-  await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']); // Ensure logged in
-  
-  const { searchParams } = new URL(req.url);
-  const model = searchParams.get('model');
-  const action = searchParams.get('action'); // e.g. "schema"
+  try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']); // Ensure logged in
+    
+    const { searchParams } = new URL(req.url);
+    const model = searchParams.get('model');
+    const action = searchParams.get('action'); // e.g. "schema"
 
-  if (action === "schema" && model) {
-    const modelSchema = models.find(m => m.name.toLowerCase() === model.toLowerCase());
-    if (!modelSchema) return NextResponse.json({ error: "Model not found" }, { status: 404 });
-    return NextResponse.json({ schema: modelSchema.fields });
-  }
-
-  if (model && searchParams.get('id')) {
-    try {
-      const record = await (db as any)[model].findUnique({ where: { id: searchParams.get('id') } });
-      return NextResponse.json({ data: record });
-    } catch (e: any) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
+    if (action === "schema" && model) {
+      const modelSchema = models.find(m => m.name.toLowerCase() === model.toLowerCase());
+      if (!modelSchema) return NextResponse.json({ error: "Model not found" }, { status: 404 });
+      return NextResponse.json({ schema: modelSchema.fields });
     }
-  }
 
-  return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    if (model && searchParams.get('id')) {
+      try {
+        const record = await (db as any)[model].findUnique({ where: { id: searchParams.get('id') } });
+        return NextResponse.json({ data: record });
+      } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: error.message === 'Forbidden' ? 403 : 500 });
+  }
 }
 
 // Automated E-E-A-T & Guest Masking Protocol

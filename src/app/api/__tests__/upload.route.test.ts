@@ -1,20 +1,49 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/admin/upload/route'
 import { db } from '@/lib/db'
+
+// Use vi.hoisted to define mocks before hoisting
+const { mockFileTypeFromBuffer } = vi.hoisted(() => ({
+  mockFileTypeFromBuffer: vi.fn(),
+}))
+
+vi.mock('file-type', () => ({
+  fileTypeFromBuffer: mockFileTypeFromBuffer,
+}))
+
+// Helper to create a mock File with arrayBuffer method
+function createMockFile(name: string, type: string, size = 1024) {
+  return {
+    name,
+    type,
+    size,
+    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(size)),
+  } as unknown as File
+}
+
+// Helper to create a mock request with formData
+function createMockRequest(file?: File) {
+  const mockFormData = {
+    get: vi.fn().mockImplementation((key: string) => {
+      if (key === 'file') return file
+      return undefined
+    }),
+  }
+  return {
+    formData: vi.fn().mockResolvedValue(mockFormData),
+  } as unknown as Request
+}
 
 describe('Upload API', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFileTypeFromBuffer.mockReset()
   })
 
-  it('should return 401 for unauthenticated user', async () => {
+  it('should return 403 for unauthenticated user', async () => {
     vi.spyOn(await import('@/lib/session'), 'requireRole').mockRejectedValueOnce(new Error('Forbidden'))
 
-    const request = new NextRequest('http://localhost/api/admin/upload', {
-      method: 'POST',
-      body: new FormData(),
-    })
+    const request = createMockRequest()
 
     const response = await POST(request)
     const data = await response.json()
@@ -30,11 +59,7 @@ describe('Upload API', () => {
       sessionId: 'session-123',
     })
 
-    const formData = new FormData()
-    const request = new NextRequest('http://localhost/api/admin/upload', {
-      method: 'POST',
-      body: formData,
-    })
+    const request = createMockRequest(undefined)
 
     const response = await POST(request)
     const data = await response.json()
@@ -50,14 +75,11 @@ describe('Upload API', () => {
       sessionId: 'session-123',
     })
 
-    const file = new File(['test'], 'test.txt', { type: 'text/plain' })
-    const formData = new FormData()
-    formData.append('file', file)
+    // Mock file-type to return null (invalid type)
+    mockFileTypeFromBuffer.mockResolvedValueOnce(null)
 
-    const request = new NextRequest('http://localhost/api/admin/upload', {
-      method: 'POST',
-      body: formData,
-    })
+    const file = createMockFile('test.txt', 'text/plain')
+    const request = createMockRequest(file)
 
     const response = await POST(request)
     const data = await response.json()
@@ -72,6 +94,12 @@ describe('Upload API', () => {
       role: 'EDITOR',
       sessionId: 'session-123',
     })
+
+    // Mock file-type to return valid JPEG
+    mockFileTypeFromBuffer.mockResolvedValueOnce({ mime: 'image/jpeg', ext: 'jpg' })
+
+    // Mock BLOB_READ_WRITE_TOKEN to use Vercel Blob
+    vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'test-token')
 
     vi.mocked(db.mediaAsset.create).mockResolvedValueOnce({
       id: 'media-123',
@@ -91,21 +119,15 @@ describe('Upload API', () => {
       updatedAt: new Date(),
     })
 
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const request = new NextRequest('http://localhost/api/admin/upload', {
-      method: 'POST',
-      body: formData,
-    })
+    const file = createMockFile('test.jpg', 'image/jpeg')
+    const request = createMockRequest(file)
 
     const response = await POST(request)
     const data = await response.json()
 
     expect(response.status).toBe(200)
     expect(data.success).toBe(true)
-    expect(data.url).toBe('https://blob.url/test.jpg')
+    expect(data.url).toBe('https://mock-blob.url/test.jpg')
     expect(data.asset).toBeDefined()
   })
 })

@@ -37,7 +37,7 @@ export default async function ToolsPage() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tools.map((tool: any, i: number) => (
+          {tools.map((tool, i: number) => (
             <ScrollReveal key={tool.id} delay={i * 0.1}>
               <Link href={`/tools/${tool.slug}`}>
                 <TiltCard className="h-full">

@@ -1,7 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/newsletter/route'
 import { db } from '@/lib/db'
+
+// Helper to create a mock request
+function createMockRequest(body: any, contentType: string) {
+  let formData: any = null
+  let jsonBody: any = null
+  
+  if (contentType.includes('application/json')) {
+    jsonBody = body
+  } else {
+    formData = body
+  }
+
+  return {
+    headers: {
+      get: vi.fn().mockReturnValue(contentType),
+    },
+    json: vi.fn().mockResolvedValue(jsonBody),
+    formData: vi.fn().mockResolvedValue(formData),
+  } as unknown as Request
+}
 
 describe('Newsletter API', () => {
   beforeEach(() => {
@@ -9,10 +28,7 @@ describe('Newsletter API', () => {
   })
 
   it('should return 400 for invalid email', async () => {
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'invalid-email', age: 25 }),
-    })
+    const request = createMockRequest({ email: 'invalid-email', age: 25 }, 'application/json')
 
     const response = await POST(request)
     const data = await response.json()
@@ -23,10 +39,7 @@ describe('Newsletter API', () => {
   })
 
   it('should return 400 for age below 13', async () => {
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com', age: 10 }),
-    })
+    const request = createMockRequest({ email: 'test@example.com', age: 10 }, 'application/json')
 
     const response = await POST(request)
     const data = await response.json()
@@ -37,10 +50,7 @@ describe('Newsletter API', () => {
   })
 
   it('should return 400 for age above 120', async () => {
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com', age: 150 }),
-    })
+    const request = createMockRequest({ email: 'test@example.com', age: 150 }, 'application/json')
 
     const response = await POST(request)
     const data = await response.json()
@@ -61,10 +71,7 @@ describe('Newsletter API', () => {
       createdAt: new Date(),
     })
 
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com', age: 25 }),
-    })
+    const request = createMockRequest({ email: 'test@example.com', age: 25 }, 'application/json')
 
     const response = await POST(request)
     const data = await response.json()
@@ -100,14 +107,15 @@ describe('Newsletter API', () => {
       createdAt: new Date(),
     })
 
-    const formData = new FormData()
-    formData.append('email', 'test@example.com')
-    formData.append('age', '25')
+    const formData = {
+      get: vi.fn().mockImplementation((key: string) => {
+        if (key === 'email') return 'test@example.com'
+        if (key === 'age') return '25'
+        return null
+      }),
+    }
 
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: formData,
-    })
+    const request = createMockRequest(formData, 'multipart/form-data')
 
     const response = await POST(request)
     const data = await response.json()
@@ -127,10 +135,7 @@ describe('Newsletter API', () => {
       createdAt: new Date(),
     })
 
-    const request = new NextRequest('http://localhost/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com', age: '25' }),
-    })
+    const request = createMockRequest({ email: 'test@example.com', age: '25' }, 'application/json')
 
     const response = await POST(request)
     const data = await response.json()
