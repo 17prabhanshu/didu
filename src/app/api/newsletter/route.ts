@@ -1,95 +1,35 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getClientIdentifier } from '@/lib/request-ip';
 import { newsletterSchema } from '@/lib/validation';
-import { Redis } from "@upstash/redis";
+import { checkRateLimit, rateLimiters, rateLimitHeaders } from '@/lib/rate-limiter';
 import { sendNewsletterConfirmationEmail, syncNewsletterAudience } from '@/lib/email';
 
-function getSafeRedis(): Redis | null {
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
   try {
-    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-    if (
-      !url ||
-      !token ||
-      !url.startsWith('https://') ||
-      url.includes('your-redis.upstash.io') ||
-      url.includes('xxx.upstash.io') ||
-      token === 'your_redis_rest_token_here'
-    ) {
-      return null;
-    }
-    return new Redis({ url, token });
-  } catch {
-    return null;
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-}
-
-const redis = getSafeRedis();
-
-// Local fallback for development or when Upstash is not configured
-const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
-const MAX_SUBMISSIONS = 20;
-const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
-    promise
-      .then((val) => {
-        clearTimeout(timer);
-        resolve(val);
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
-}
-
-async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
-  if (redis) {
-    try {
-      const key = `rl:newsletter:${ip}`;
-      const count = await withTimeout(redis.incr(key), 1500);
-      if (count === 1) {
-        await withTimeout(redis.expire(key, 60 * 60), 1500);
-      }
-      if (count > MAX_SUBMISSIONS) {
-        return { allowed: false, remaining: 0 };
-      }
-      return { allowed: true, remaining: MAX_SUBMISSIONS - count };
-    } catch (err) {
-      console.warn("Upstash Redis rate limit warning (falling back to memory):", err);
-    }
-  }
-
-  // Fallback to in-memory
-  const record = rateLimitMap.get(ip);
-  if (record) {
-    if (Date.now() < record.lockUntil) {
-      return { allowed: false, remaining: 0 };
-    }
-    if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
-  }
-  const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
-  currentRecord.count += 1;
-  if (currentRecord.count >= MAX_SUBMISSIONS) {
-    currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
-  }
-  rateLimitMap.set(ip, currentRecord);
-  return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
 }
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIdentifier(req);
-    const rateLimit = await checkRateLimit(ip);
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, rateLimiters.newsletter);
     
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { success: false, error: "Too many attempts. Try again later." },
-        { status: 429 }
+        { 
+          status: 429,
+          headers: rateLimitHeaders(rateLimit)
+        }
       );
     }
 
@@ -122,7 +62,7 @@ export async function POST(req: Request) {
     const confirmationToken = crypto.randomUUID();
     const unsubscribeToken = crypto.randomUUID();
 
-    // Save to the database with a 3s timeout + fallback if token columns aren't migrated yet
+    // Save to the database with timeout + legacy schema fallback
     try {
       await withTimeout(
         db.newsletterSubscriber.upsert({
@@ -172,7 +112,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Sync subscriber to external newsletter audience (Resend Contacts / Beehiiv) & send email
+    // Sync subscriber to external newsletter audience & send confirmation email
     try {
       await withTimeout(
         Promise.allSettled([
@@ -202,6 +142,8 @@ export async function POST(req: Request) {
       success: true, 
       message: "Subscribed successfully!",
       redirectUrl: "/newsletter?subscribed=true"
+    }, {
+      headers: rateLimitHeaders(rateLimit)
     });
   } catch (error) {
     console.error("Newsletter Subscription Error:", error);

@@ -111,6 +111,7 @@ model Article {
   @@index([authorId])
   @@index([categoryId])
   @@index([createdAt])
+  @@index([status, contentType, publishedAt])
 }
 
 model ArticleRevision {
@@ -447,6 +448,7 @@ model NewsletterSubscriber {
   @@index([status])
   @@index([confirmationToken])
   @@index([unsubscribeToken])
+  @@index([status, confirmedAt])
 }
 
 model Comparison {
@@ -511,6 +513,7 @@ model ContactMessage {
   createdAt DateTime @default(now())
 
   @@index([status])
+  @@index([status, createdAt])
 }
 
 model PasswordResetToken {

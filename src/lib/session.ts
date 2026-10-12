@@ -29,8 +29,7 @@ export async function createSession(userId: string, role: string): Promise<strin
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    // SECURITY PATCH: Omitting 'expires' forces this to be a volatile "Session Cookie".
-    // The browser will automatically delete it the moment the user closes their browser window.
+    expires: expiresAt,
   })
 
   return token

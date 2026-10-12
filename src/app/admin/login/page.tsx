@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
@@ -15,7 +15,16 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
   const router = useRouter();
+
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    fetch("/api/auth/csrf")
+      .then(res => res.json())
+      .then(data => setCsrfToken(data.token))
+      .catch(() => {});
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +35,10 @@ export default function AdminLoginPage() {
       const data = loginSchema.parse({ email, password });
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
         body: JSON.stringify(data)
       });
       
@@ -99,6 +111,8 @@ export default function AdminLoginPage() {
                 className="w-full px-5 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm" 
               />
             </div>
+            
+            <input type="hidden" name="csrf_token" value={csrfToken} />
             
             <button 
               type="submit" 

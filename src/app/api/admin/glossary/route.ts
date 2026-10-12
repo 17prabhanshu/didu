@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireRole } from '@/lib/session'
 
 export async function GET(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const terms = await db.glossaryTerm.findMany({
       orderBy: { term: 'asc' }
     })
     return NextResponse.json(terms)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch terms' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to fetch terms' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const body = await req.json()
     const term = await db.glossaryTerm.create({
       data: {
@@ -23,7 +29,10 @@ export async function POST(req: Request) {
       }
     })
     return NextResponse.json(term)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create term' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to create term' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }

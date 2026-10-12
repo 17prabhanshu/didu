@@ -1,92 +1,45 @@
 import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
-import { getClientIdentifier } from "@/lib/request-ip";
-import { Redis } from "@upstash/redis";
+import { checkRateLimit, rateLimiters, rateLimitHeaders } from '@/lib/rate-limiter';
 import { sendContactFormNotification, sendContactFormAutoReply } from "@/lib/email";
 
-function getSafeRedis(): Redis | null {
+async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
   try {
-    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-    if (
-      !url ||
-      !token ||
-      !url.startsWith('https://') ||
-      url.includes('your-redis.upstash.io') ||
-      url.includes('xxx.upstash.io') ||
-      token === 'your_redis_rest_token_here'
-    ) {
-      return null;
-    }
-    return new Redis({ url, token });
-  } catch {
-    return null;
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
-const redis = getSafeRedis();
-
-const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
-const MAX_SUBMISSIONS = 10;
-const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
-    promise
-      .then((val) => {
-        clearTimeout(timer);
-        resolve(val);
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
-}
-
-async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
-  if (redis) {
-    try {
-      const key = `rl:contact:${ip}`;
-      const count = await withTimeout(redis.incr(key), 1500);
-      if (count === 1) {
-        await withTimeout(redis.expire(key, 60 * 60), 1500);
-      }
-      if (count > MAX_SUBMISSIONS) {
-        return { allowed: false, remaining: 0 };
-      }
-      return { allowed: true, remaining: MAX_SUBMISSIONS - count };
-    } catch (err) {
-      console.warn("Upstash Redis contact rate limit warning (falling back to memory):", err);
-    }
-  }
-
-  const record = rateLimitMap.get(ip);
-  if (record) {
-    if (Date.now() < record.lockUntil) {
-      return { allowed: false, remaining: 0 };
-    }
-    if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
-  }
-  const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
-  currentRecord.count += 1;
-  if (currentRecord.count >= MAX_SUBMISSIONS) {
-    currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
-  }
-  rateLimitMap.set(ip, currentRecord);
-  return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
+function slugify(input: string): string {
+  return (
+    input
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') +
+    '-' +
+    Date.now().toString(36)
+  );
 }
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIdentifier(req);
-    const rateLimit = await checkRateLimit(ip);
+    // Rate limiting
+    const rateLimit = await checkRateLimit(req, rateLimiters.contact);
     
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { success: false, error: "Too many attempts. Try again later." },
-        { status: 429 }
+        { 
+          status: 429,
+          headers: rateLimitHeaders(rateLimit)
+        }
       );
     }
 
@@ -95,6 +48,11 @@ export async function POST(req: Request) {
     let email: string | null = null;
     let subject: string | null = null;
     let message: string | null = null;
+    let submissionType: string | null = null;
+    let entityName: string | null = null;
+    let websiteUrl: string | null = null;
+    let githubUrl: string | null = null;
+    let description: string | null = null;
 
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -103,6 +61,11 @@ export async function POST(req: Request) {
       email = json.email;
       subject = json.subject;
       message = json.message;
+      submissionType = json.submissionType || null;
+      entityName = json.entityName || null;
+      websiteUrl = json.websiteUrl || null;
+      githubUrl = json.githubUrl || null;
+      description = json.description || null;
     } else {
       const body = await req.formData();
       name = body.get('name') as string;
@@ -117,26 +80,119 @@ export async function POST(req: Request) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
+    const cleanSubject = subject || '';
 
-    // Persist to the database with resilient 3s timeout fallback
+    // Persist to the database
     let contactId: string | undefined;
     try {
       const contactMessage = await withTimeout(
         db.contactMessage.create({
-          data: { name: cleanName, email: cleanEmail, subject: subject || '', message, status: 'UNREAD' }
+          data: { name: cleanName, email: cleanEmail, subject: cleanSubject, message, status: 'UNREAD' }
         }),
         3000
       );
       contactId = contactMessage.id;
     } catch (dbError) {
-      console.warn("Contact message DB create warning (resiliently proceeding with emails):", dbError);
+      console.warn("Contact message DB create warning (resiliently proceeding):", dbError);
     }
 
-    // Send email notifications with timeout guard
+    // Automated Directory Submission Pipeline (/submit -> Tool / Agent / Article record)
+    const isDirectorySubmission =
+      submissionType ||
+      cleanSubject.startsWith('[Tool Submission]') ||
+      cleanSubject.startsWith('[Agent Submission]') ||
+      cleanSubject.startsWith('[Guest Post Pitch]');
+
+    let autoApproved = false;
+    if (isDirectorySubmission) {
+      try {
+        const autoApprove = process.env.AUTO_APPROVE_SUBMISSIONS === 'true';
+        const targetStatus = autoApprove ? 'PUBLISHED' : 'DRAFT';
+        autoApproved = autoApprove;
+
+        const inferredTitle =
+          (entityName || cleanSubject.replace(/^\[.*?\]\s*/, '') || 'Submitted Resource')
+            .replace(/Guest|Sponsor/gi, 'Analyst')
+            .trim();
+        const slug = slugify(inferredTitle);
+        const rawDesc = (description || message)
+          .replace(/guest poster|guest writer|guest author/gi, 'Contributing Analyst')
+          .replace(/guest post|sponsored post|paid post/gi, 'independent research');
+
+        const type =
+          submissionType ||
+          (cleanSubject.startsWith('[Agent Submission]')
+            ? 'agent'
+            : cleanSubject.startsWith('[Guest Post Pitch]')
+            ? 'article'
+            : 'tool');
+
+        if (type === 'tool' && (db as any).tool?.create) {
+          await withTimeout(
+            (db as any).tool.create({
+              data: {
+                name: inferredTitle,
+                slug,
+                tagline: rawDesc.slice(0, 140),
+                description: rawDesc,
+                websiteUrl: websiteUrl || null,
+                githubUrl: githubUrl || null,
+                status: targetStatus,
+              },
+            }),
+            2500
+          );
+        } else if (type === 'agent' && (db as any).agent?.create) {
+          await withTimeout(
+            (db as any).agent.create({
+              data: {
+                name: inferredTitle,
+                slug,
+                tagline: rawDesc.slice(0, 140),
+                description: rawDesc,
+                websiteUrl: websiteUrl || null,
+                githubUrl: githubUrl || null,
+                status: targetStatus,
+              },
+            }),
+            2500
+          );
+        } else if (type === 'article' && (db as any).article?.create && (db as any).author) {
+          const fallbackAuthor =
+            (await (db as any).author.findFirst()) ||
+            (await (db as any).author.create({
+              data: {
+                name: 'Intelligence Desk',
+                slug: 'intelligence-desk',
+                bio: 'Agentverse internal research team.',
+              },
+            }));
+          await withTimeout(
+            (db as any).article.create({
+              data: {
+                title: inferredTitle,
+                slug,
+                excerpt: rawDesc.slice(0, 180),
+                body: `<p>${rawDesc.replace(/\n+/g, '</p><p>')}</p>`,
+                contentType: 'RESEARCH',
+                status: targetStatus,
+                publishedAt: autoApprove ? new Date() : null,
+                authorId: fallbackAuthor.id,
+              },
+            }),
+            2500
+          );
+        }
+      } catch (subErr) {
+        console.warn("Automated directory submission record creation warning:", subErr);
+      }
+    }
+
+    // Send email notifications
     try {
       await withTimeout(
         Promise.allSettled([
-          sendContactFormNotification(cleanName, cleanEmail, subject || 'No Subject', message),
+          sendContactFormNotification(cleanName, cleanEmail, cleanSubject || 'No Subject', message),
           sendContactFormAutoReply(cleanName, cleanEmail),
         ]),
         3500
@@ -147,8 +203,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: "Message sent successfully! We'll get back to you soon.",
+      message: autoApproved
+        ? "Submission received and auto-approved to the live directory!"
+        : "Message sent successfully! We'll get back to you soon.",
+      autoApproved,
       id: contactId || 'submitted'
+    }, {
+      headers: rateLimitHeaders(rateLimit)
     });
   } catch (error) {
     console.error("Contact API Error:", error);

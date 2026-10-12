@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
 import { sendContactReplyEmail } from "@/lib/email";
+import { createAuditLog } from "@/lib/audit";
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAuth();
+    const session = await requireAuth();
     const { id } = await params;
     const body = await req.json();
 
@@ -22,6 +23,15 @@ export async function PATCH(
       data: { status },
     });
 
+    // Audit log
+    await createAuditLog({
+      action: 'UPDATE',
+      entityType: 'ContactMessage',
+      entityId: id,
+      metadata: { status },
+      userId: session.userId,
+    });
+
     return NextResponse.json({ success: true, data: updated });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -33,7 +43,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAuth();
+    const session = await requireAuth();
     const { id } = await params;
     const body = await req.json();
 
@@ -62,6 +72,15 @@ export async function POST(
     const updated = await db.contactMessage.update({
       where: { id },
       data: { status: "REPLIED" },
+    });
+
+    // Audit log
+    await createAuditLog({
+      action: 'UPDATE',
+      entityType: 'ContactMessage',
+      entityId: id,
+      metadata: { status: 'REPLIED', replySent: sent, replyLength: replyMessage.length },
+      userId: session.userId,
     });
 
     return NextResponse.json({ 

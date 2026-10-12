@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Search, Edit, Trash2, ArrowRight, FolderSearch, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, FolderSearch, AlertCircle, CheckCircle2, X, Sparkles, Check } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -29,11 +29,86 @@ export function AdminDataTable({
   // Custom Modal & Toast States
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const isRowPending = (row: any) => {
+    if (!modelName) return false;
+    if (typeof row.approved === "boolean") return !row.approved;
+    if (typeof row.status === "string") {
+      return ["DRAFT", "SUBMITTED", "PENDING", "IN_REVIEW", "UNREAD"].includes(row.status.toUpperCase());
+    }
+    return false;
+  };
+
+  const pendingCount = data.filter(isRowPending).length;
+
+  const handleApproveRow = async (id: string) => {
+    if (!modelName || !id) return;
+    setApprovingId(id);
+    try {
+      const res = await fetch("/api/admin/crud", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelName, id, action: "approve" }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setData((prev) =>
+          prev.map((row) => {
+            if (row.id !== id) return row;
+            if (typeof row.approved === "boolean") return { ...row, approved: true };
+            if (modelName.toLowerCase() === "contactmessage") return { ...row, status: "READ" };
+            return { ...row, status: "PUBLISHED" };
+          })
+        );
+        showToast("Record approved & published!", "success");
+        router.refresh();
+      } else {
+        showToast(json.error || "Failed to approve record.", "error");
+      }
+    } catch {
+      showToast("Network error approving record.", "error");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const handleBulkAutoApprove = async () => {
+    if (!modelName || pendingCount === 0) return;
+    setIsBulkApproving(true);
+    try {
+      const res = await fetch("/api/admin/crud", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelName, action: "bulk-approve" }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setData((prev) =>
+          prev.map((row) => {
+            if (!isRowPending(row)) return row;
+            if (typeof row.approved === "boolean") return { ...row, approved: true };
+            if (modelName.toLowerCase() === "contactmessage") return { ...row, status: "READ" };
+            return { ...row, status: "PUBLISHED" };
+          })
+        );
+        showToast(`Auto-approved ${json.count ?? pendingCount} pending records!`, "success");
+        router.refresh();
+      } else {
+        showToast(json.error || "Failed to bulk approve records.", "error");
+      }
+    } catch {
+      showToast("Network error during bulk auto-approve.", "error");
+    } finally {
+      setIsBulkApproving(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -116,14 +191,26 @@ export function AdminDataTable({
           <h1 className="text-3xl font-bold font-heading">{title}</h1>
           <p className="text-muted-foreground mt-1 text-sm font-medium">{description}</p>
         </div>
-        {createUrl && (
-          <Link
-            href={createUrl}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-2xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
-          >
-            <Plus className="w-4 h-4" /> Add New {title.replace(/s$/, '')}
-          </Link>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {modelName && pendingCount > 0 && (
+            <button
+              onClick={handleBulkAutoApprove}
+              disabled={isBulkApproving}
+              className="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-2xl font-bold hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 text-sm"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isBulkApproving ? "Approving..." : `Auto-Approve Pending (${pendingCount})`}
+            </button>
+          )}
+          {createUrl && (
+            <Link
+              href={createUrl}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-2xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
+            >
+              <Plus className="w-4 h-4" /> Add New {title.replace(/s$/, '')}
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded-[2rem] shadow-sm overflow-hidden">
@@ -184,6 +271,17 @@ export function AdminDataTable({
                     ))}
                     <td className="px-6 py-5 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                        {isRowPending(row) && row.id && (
+                          <button
+                            onClick={() => handleApproveRow(row.id)}
+                            disabled={approvingId === row.id}
+                            title="1-Click Approve & Publish"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 rounded-xl transition-colors disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            {approvingId === row.id ? "..." : "Approve"}
+                          </button>
+                        )}
                         {entitySlug && row.id && (
                           <Link href={`/admin/${entitySlug}/${row.id}/edit`} className="p-2 text-muted-foreground hover:text-primary transition-colors hover:bg-primary/10 rounded-xl">
                             <Edit className="w-4 h-4" />

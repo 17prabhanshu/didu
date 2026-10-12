@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { sendPasswordResetSuccessEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
@@ -32,12 +33,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const resetToken = await db.passwordResetToken.findUnique({
-      where: { token },
+    const hashedToken = crypto.createHash('sha256').update(String(token)).digest('hex');
+
+    // O(1) indexed lookup by SHA-256 token hash (with fallback for legacy plain tokens)
+    const resetToken = await db.passwordResetToken.findFirst({
+      where: {
+        OR: [{ token: hashedToken }, { token: String(token) }],
+        expiresAt: { gt: new Date() },
+      },
       include: { user: true },
     });
 
-    if (!resetToken || resetToken.expiresAt < new Date()) {
+    if (!resetToken) {
       return NextResponse.json(
         { success: false, error: { message: 'Invalid or expired reset token.' } },
         { status: 400 }

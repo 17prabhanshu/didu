@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireRole } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']);
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
     const take = 50;
@@ -27,12 +29,16 @@ export async function GET(req: Request) {
     });
     return NextResponse.json({ success: true, data: articles });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: { message: error.message } },
+      { status: error.message === 'Forbidden' ? 403 : 500 }
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']);
     const body = await req.json();
     const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     
@@ -60,6 +66,9 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ success: true, data: article });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: { message: error.message } }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: { message: error.message } },
+      { status: error.message === 'Forbidden' ? 403 : 400 }
+    );
   }
 }

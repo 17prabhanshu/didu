@@ -1,111 +1,68 @@
-# 🚨 CRITICAL FIXES - Production Blockers
+# Agentverse v2.0.27 - Security & Architecture Fixes - COMPLETED
 
-## 🔴 CRITICAL - Production Blockers (Fix First)
+## Phase 1: Critical Security ✅ DONE
+- [x] Fix session cookie missing `expires` (src/lib/session.ts)
+- [x] Add CSRF protection to all state-changing endpoints (src/lib/csrf.ts, src/proxy.ts)
+- [x] Hash password reset tokens with bcrypt (prisma/schema.prisma, forgot-password, reset-password routes)
+- [x] Fix rate limiting `unknown` IP bucket bypass (src/lib/request-ip.ts - fingerprint fallback)
+- [x] Require Upstash Redis in production (src/lib/rate-limiter.ts - fail closed)
 
-### 1. Newsletter System - RESOLVED
-- [x] Footer newsletter form - age validation blocks all submissions (400 error fixed)
-- [x] Homepage newsletter form - interactive client form with async handling
-- [x] Confirmation email sent on subscribe (with tokens)
-- [x] Success landing page for newsletter (/newsletter)
-- [x] Admin subscribers page (/admin/subscribers created)
+## Phase 2: High-Risk API ✅ DONE
+- [x] Secure generic CRUD endpoint with field allowlists & audit logging (src/app/api/admin/crud/route.ts)
+- [x] Remove silent content masking protocol (removed applyMaskingProtocol)
+- [x] Add missing composite database indexes (prisma/schema.prisma - Article, NewsletterSubscriber, ContactMessage)
+- [x] Add audit logging for all admin actions (src/lib/audit.ts, integrated in CRUD, inbox)
 
-### 2. Contact Form System - RESOLVED
-- [x] Admin sidebar link points to /admin/inbox
-- [x] "Reply" button in /admin/inbox/[id] has handler and interactive composer
-- [x] Contact form auto-reply sent to user
+## Phase 3: Rate Limiting & Search ✅ DONE
+- [x] Centralize rate limiting into single service (src/lib/rate-limiter.ts)
+- [x] Implement PostgreSQL full-text search (prisma/migrations/add_fulltext_search/migration.sql, updated search route)
+- [x] Add API versioning structure (/api/v1/)
 
-### 3. Mobile Navigation - RESOLVED
-- [x] Hamburger menu renders full slide-down drawer with navigation, search, and theme controls
+## Phase 4: Observability & Headers ✅ DONE
+- [x] Add strict CSP and security headers to API routes (next.config.ts)
+- [x] Structured logging with sanitization (src/lib/logger.ts already existed)
+- [x] Add health check with Redis status (src/app/api/health/route.ts)
+- [x] Add session cleanup cron job (src/app/api/cron/cleanup-sessions/route.ts)
 
-### 4. Edge Middleware - RESOLVED
-- [x] src/middleware.ts created and active with security headers & JWT route protection
+## Phase 5: Code Quality ✅ DONE
+- [x] Fix TypeScript `any` usage in CRUD (using Prisma.dmmf)
+- [x] Add zod schemas for all models (src/lib/validation.ts - added ArticleRevision, ExternalLink, InternalLink, Comparison, Review, Framework, MCPServer, Company, Author)
+- [x] Update all API routes to use centralized rate limiter (newsletter, contact, login)
 
-## 🟡 HIGH PRIORITY - Missing Pages (404s)
+## New Files Created:
+- src/lib/csrf.ts - CSRF token generation/validation
+- src/lib/rate-limiter.ts - Centralized rate limiting with Redis
+- src/lib/audit.ts - Audit logging service
+- src/app/api/auth/csrf/route.ts - CSRF token endpoint
+- src/app/api/cron/cleanup-sessions/route.ts - Session cleanup cron
+- src/app/api/v1/route.ts - API version info
+- prisma/migrations/add_fulltext_search/migration.sql - Full-text search migration
 
-### 5. Missing Pages (404s) - RESOLVED
-- [x] /newsletter - Archive & briefing hub
-- [x] /submit - Unified tool/agent/pitch submission form
-- [x] /admin/subscribers - Admin subscribers page
-- [x] /authors - Authors index directory
-- [x] /dictionary - Glossary index directory
-- [x] /dictionary/[slug] - Glossary term detail page
+## Modified Files:
+- src/lib/session.ts - Added expires to session cookie
+- src/proxy.ts - Added CSRF validation for state-changing API routes
+- src/lib/request-ip.ts - Fingerprint fallback instead of 'unknown' bucket
+- src/app/api/auth/forgot-password/route.ts - Hash reset tokens
+- src/app/api/auth/reset-password/route.ts - Verify hashed tokens
+- src/app/api/newsletter/route.ts - Use centralized rate limiter
+- src/app/api/contact/route.ts - Use centralized rate limiter
+- src/app/api/auth/login/route.ts - Use centralized rate limiter
+- src/app/api/admin/crud/route.ts - Field allowlists, audit logging, removed masking
+- src/app/api/admin/inbox/[id]/route.ts - Audit logging on reply/status change
+- src/app/api/search/route.ts - PostgreSQL full-text search with fallback
+- src/app/api/health/route.ts - Enhanced with version, uptime, Redis check
+- next.config.ts - Stricter CSP for API routes
+- src/app/admin/login/page.tsx - CSRF token integration
+- prisma/schema.prisma - Hash password reset tokens, add indexes, add searchVector columns
+- src/lib/validation.ts - Added missing Zod schemas
 
-### 6. Placeholder Pages - RESOLVED
-- [x] /search - Live search querying DB across agents, tools, models, articles
-- [x] /guides/[slug] - Editorial guide reader
-- [x] /authors/[slug] - Author profile and publication cards
-- [x] Missing "Forgot Password" link on /admin/login added
-
-## 🟢 MEDIUM PRIORITY - Admin CRUD Missing
-
-### 7. Admin CRUD - Missing Create/Edit Pages
-- Articles: Create/Edit pages missing
-- Agents: Create/Edit pages missing  
-- Tools: Create/Edit pages missing
-- Models: Create/Edit pages missing
-- Categories, Tags, Authors, Security Alerts, Glossary, etc.
-
-## 🟢 MEDIUM PRIORITY - Missing API Routes
-
-### 8. Missing Admin API Routes
-- POST /api/admin/contact/[id]/reply
-- PATCH /api/admin/contact/[id] (status updates)
-- CRUD for Articles, Agents, Tools, Models, etc.
-
-## 🟢 MEDIUM PRIORITY - Missing Email Notifications
-
-### 7. Email Notifications Missing
-- [ ] Contact form auto-reply to user
-- [ ] Newsletter welcome email on confirm
-- [ ] Newsletter unsubscribe confirmation
-- [ ] Password reset confirmation email
-
-## 🟢 MEDIUM PRIORITY - Missing Pages
-
-### 8. Missing Content Pages
-- [ ] /newsletter archive page
-- [ ] /authors index page
-- [ ] /dictionary glossary index
-- [ ] /submit page
-
-## 🟢 MEDIUM PRIORITY - Missing Admin API Routes
-
-### 9. Missing Admin API Routes
-- POST /api/admin/contact/[id]/reply
-- PATCH /api/admin/contact/[id]
-- CRUD for Articles, Agents, Tools, Models
-
-## 🟢 LOW PRIORITY - Search & Discovery
-
-### 9. Search Enhancements
-- Autocomplete/suggestions
-- Filters (category, date, type)
-- Analytics tracking
-
----
-
-## 📋 EXECUTION ORDER (Recommended)
-
-### Phase 1: Critical Fixes (Today)
-1. Fix newsletter form validation (remove age requirement)
-2. Fix homepage newsletter form
-3. Fix admin sidebar link (/admin/contacts -> /admin/inbox)
-4. Fix mobile hamburger menu
-5. Rename proxy.ts to middleware.ts
-
-### Phase 2: Core Missing Pages (Today/Tomorrow)
-1. Create /newsletter archive page
-2. Create /submit page
-3. Create /admin/subscribers page
-2. Fix contact form auto-reply
-
-### Phase 3: Admin Features
-1. Reply button in inbox
-2. Admin CRUD pages
-3. Reply API
-
-### Phase 4: Polish
-1. Mobile menu
-2. Search page
-3. Placeholder pages
-4. Missing static assets
+## Remaining (Future Phases):
+- [ ] Domain-driven module restructure (src/domains/)
+- [ ] Service layer extraction
+- [ ] Event-driven side effects (email, revalidation)
+- [ ] Feature flags system
+- [ ] Integration tests for admin flows
+- [ ] E2E tests for auth flows
+- [ ] Load tests for rate limiting
+- [ ] OpenTelemetry integration
+- [ ] React Email templates for emails

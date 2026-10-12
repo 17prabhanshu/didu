@@ -50,6 +50,12 @@ ${formData.extraDetails || "None provided"}
           email: formData.email,
           subject: `${subjectPrefix} ${formData.entityName}`,
           message: messageBody,
+          submissionType,
+          entityName: formData.entityName,
+          websiteUrl: formData.websiteUrl,
+          githubUrl: formData.githubUrl,
+          description: formData.description,
+          extraDetails: formData.extraDetails,
         }),
       });
 

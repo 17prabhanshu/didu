@@ -47,6 +47,20 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
     ].join("; ") + (isDev ? "" : "; upgrade-insecure-requests");
 
+    // Stricter CSP for API routes - no scripts, no inline styles, no external connections
+    const apiCsp = [
+      "default-src 'none'",
+      "script-src 'none'",
+      "style-src 'none'",
+      "img-src 'none'",
+      "font-src 'none'",
+      "connect-src 'none'",
+      "frame-ancestors 'none'",
+      "base-uri 'none'",
+      "form-action 'none'",
+      "object-src 'none'",
+    ].join("; ");
+
     const baseHeaders = [
       { key: 'X-Frame-Options', value: 'DENY' },
       { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -59,8 +73,7 @@ const nextConfig: NextConfig = {
     if (!isDev) {
       baseHeaders.push({ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' });
       baseHeaders.push({ key: 'Cross-Origin-Opener-Policy', value: 'same-origin' });
-      baseHeaders.push({ key: 'Cross-Origin-Resource-Policy', value: 'same-origin' });
-      baseHeaders.push({ key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' });
+      baseHeaders.push({ key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' });
     }
 
     return [
@@ -72,6 +85,9 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Content-Security-Policy', value: apiCsp },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
         ],
       },
     ]

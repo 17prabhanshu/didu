@@ -11,6 +11,8 @@
  * - On Vercel the platform appends the real client IP; the first value is the
  *   client-supplied one, but because the header chain cannot be trusted from an
  *   untrusted proxy we cap length and validate shape before using it as a key.
+ * - When no valid IP can be determined, we generate a session-based fingerprint
+ *   to prevent all unknown clients from sharing a single bucket.
  */
 
 const IPV4 = /^(\d{1,3}\.){3}\d{1,3}$/;
@@ -24,9 +26,27 @@ function sanitizeIp(candidate: string | null | undefined): string | null {
   return null;
 }
 
+function generateFingerprint(req: Request): string {
+  // Create a fingerprint from available headers for clients without valid IP
+  const ua = req.headers.get('user-agent') || '';
+  const accept = req.headers.get('accept') || '';
+  const acceptLang = req.headers.get('accept-language') || '';
+  const acceptEnc = req.headers.get('accept-encoding') || '';
+  
+  // Simple hash of fingerprint components
+  const raw = `${ua}|${accept}|${acceptLang}|${acceptEnc}`;
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return `fp:${Math.abs(hash).toString(36)}`;
+}
+
 /**
  * Returns a stable, privacy-safe identifier for rate limiting.
- * Falls back to a shared bucket ("unknown") when no valid IP can be determined,
+ * Falls back to a fingerprint when no valid IP can be determined,
  * so untrusted/blank headers still get throttled rather than bypassing limits.
  */
 export function getClientIdentifier(req: Request): string {
@@ -43,5 +63,6 @@ export function getClientIdentifier(req: Request): string {
   const cfIp = sanitizeIp(req.headers.get('cf-connecting-ip'));
   if (cfIp) return cfIp;
 
-  return 'unknown';
+  // Use fingerprint instead of shared "unknown" bucket
+  return generateFingerprint(req);
 }

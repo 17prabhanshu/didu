@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireRole } from '@/lib/session'
 
 export async function GET(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const categories = await db.category.findMany({
       orderBy: { name: 'asc' }
     })
     return NextResponse.json(categories)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to fetch categories' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR'])
     const body = await req.json()
     const category = await db.category.create({
       data: {
@@ -23,7 +29,10 @@ export async function POST(req: Request) {
       }
     })
     return NextResponse.json(category)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to create category' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }

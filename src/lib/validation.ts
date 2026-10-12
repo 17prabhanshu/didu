@@ -145,7 +145,106 @@ export const mediaSchema = z.object({
 // Search
 export const searchSchema = z.object({
   query: z.string().min(1).max(100),
-  filters: z.record(z.string(), z.any()).optional(),
+  filters: z.record(z.string(), z.unknown()).optional(),
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(100).default(20),
+})
+
+// Article Revision
+export const articleRevisionSchema = z.object({
+  articleId: z.string().min(1),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1),
+  authorId: z.string().min(1),
+})
+
+// External Link
+export const externalLinkSchema = z.object({
+  url: z.string().url(),
+  anchorText: z.string().optional(),
+  relAttribute: z.enum(['FOLLOW', 'NOFOLLOW', 'SPONSORED', 'UGC']).optional(),
+  articleId: z.string().optional(),
+})
+
+// Internal Link
+export const internalLinkSchema = z.object({
+  sourceArticleId: z.string().min(1),
+  targetArticleId: z.string().optional(),
+  targetEntityType: z.string().optional(),
+  targetEntityId: z.string().optional(),
+  anchorText: z.string().optional(),
+  approved: z.boolean().default(false),
+})
+
+// Comparison
+export const comparisonSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  description: z.string().optional(),
+  entityType: z.enum(['agent', 'tool', 'model']),
+  entityIds: z.array(z.string()),
+  body: z.string().optional(),
+  authorId: z.string().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED']),
+})
+
+// Review
+export const reviewSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  entityType: z.string().min(1),
+  entityId: z.string().min(1),
+  body: z.string().optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  authorId: z.string().min(1),
+  status: z.enum(['DRAFT', 'PUBLISHED']),
+})
+
+// Framework
+export const frameworkSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  description: z.string().optional(),
+  language: z.string().optional(),
+  category: z.string().optional(),
+  officialUrl: z.string().url().optional(),
+  docsUrl: z.string().url().optional(),
+  githubUrl: z.string().url().optional(),
+  logoUrl: z.string().url().optional(),
+  openSource: z.boolean().optional(),
+  stars: z.number().int().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+})
+
+// MCP Server
+export const mcpServerSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  description: z.string().optional(),
+  provider: z.string().optional(),
+  category: z.string().optional(),
+  officialUrl: z.string().url().optional(),
+  docsUrl: z.string().url().optional(),
+  githubUrl: z.string().url().optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+})
+
+// Company
+export const companySchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  description: z.string().optional(),
+  website: z.string().url().optional(),
+  logoUrl: z.string().url().optional(),
+})
+
+// Author
+export const authorSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  bio: z.string().optional(),
+  avatar: z.string().url().optional(),
+  expertise: z.string().optional(),
+  socialLinks: z.record(z.string(), z.string()).optional(),
+  userId: z.string().optional(),
 })

@@ -1,22 +1,27 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireRole } from '@/lib/session'
 
 export async function GET(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const agents = await db.agent.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50
     })
     return NextResponse.json(agents)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to fetch agents' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const body = await req.json()
-    // auth check would go here
     const agent = await db.agent.create({
       data: {
         name: body.name,
@@ -26,7 +31,10 @@ export async function POST(req: Request) {
       }
     })
     return NextResponse.json(agent)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create agent' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to create agent' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }

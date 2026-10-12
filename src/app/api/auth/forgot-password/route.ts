@@ -1,54 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sendPasswordResetEmail } from '@/lib/email';
-import { getClientIdentifier } from '@/lib/request-ip';
-import { Redis } from '@upstash/redis';
-
-function getSafeRedis(): Redis | null {
-  try {
-    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-    if (
-      !url ||
-      !token ||
-      !url.startsWith('https://') ||
-      url.includes('your-redis.upstash.io') ||
-      url.includes('xxx.upstash.io') ||
-      token === 'your_redis_rest_token_here'
-    ) {
-      return null;
-    }
-    return new Redis({ url, token });
-  } catch {
-    return null;
-  }
-}
-
-const redis = getSafeRedis();
-
-const RATE_LIMIT_MAX = 3;
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+import { checkRateLimit, rateLimiters, rateLimitHeaders } from '@/lib/rate-limiter';
+import crypto from 'crypto';
 
 export async function POST(req: Request) {
   try {
-    const ip = getClientIdentifier(req);
-    const key = `rl:pwd-reset:${ip}`;
-
-    // Rate limiting
-    if (redis) {
-      try {
-        const attempts = await redis.get<number>(key) || 0;
-        if (attempts >= RATE_LIMIT_MAX) {
-          return NextResponse.json(
-            { success: false, error: { message: 'Too many requests. Please try again later.' } },
-            { status: 429 }
-          );
-        }
-        await redis.incr(key);
-        if (attempts === 0) await redis.expire(key, 60 * 60);
-      } catch (e) {
-        console.warn('Forgot password Redis rate limit warning:', e);
-      }
+    const rateLimit = await checkRateLimit(req, rateLimiters.passwordReset);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Too many requests. Please try again later.' } },
+        { status: 429, headers: rateLimitHeaders(rateLimit) }
+      );
     }
 
     const { email } = await req.json();
@@ -61,28 +24,32 @@ export async function POST(req: Request) {
     }
 
     // Find user (don't reveal if exists)
-    const user = await db.user.findUnique({ where: { email } });
+    const user = await db.user.findUnique({ where: { email: email.trim().toLowerCase() } });
 
     // Always return success to prevent email enumeration
     if (user) {
-      const token = require('crypto').randomBytes(32).toString('hex');
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
       await db.passwordResetToken.create({
         data: {
-          token,
+          token: hashedToken,
           userId: user.id,
           expiresAt,
         },
       });
 
-      await sendPasswordResetEmail(user.email, token, user.name || 'User');
+      await sendPasswordResetEmail(user.email, rawToken, user.name || 'User');
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'If an account exists, a password reset link has been sent.',
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'If an account exists, a password reset link has been sent.',
+      },
+      { headers: rateLimitHeaders(rateLimit) }
+    );
   } catch (error) {
     console.error('Password reset request error:', error);
     return NextResponse.json(

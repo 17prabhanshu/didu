@@ -8,6 +8,7 @@ import { fileTypeFromBuffer } from "file-type";
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
     
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json({ error: "File exceeds maximum allowed size of 5MB." }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -41,9 +46,10 @@ export async function POST(req: Request) {
     const filename = `${uniqueSuffix}.${detectedExt}`;
     
     let publicUrl = "";
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
 
     // ARCHITECTURE UPGRADE: Vercel Blob (Serverless) vs Local Fallback
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (blobToken && blobToken !== 'vercel_blob_rw_token_here') {
       // VERCEL PRODUCTION: Upload to Vercel Blob for persistent edge storage
       const blob = await put(`uploads/${filename}`, buffer, {
         access: 'public',

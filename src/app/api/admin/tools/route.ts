@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireRole } from '@/lib/session'
 
 export async function GET(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const tools = await db.tool.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50
     })
     return NextResponse.json(tools)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch tools' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to fetch tools' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const body = await req.json()
     const tool = await db.tool.create({
       data: {
@@ -25,7 +31,10 @@ export async function POST(req: Request) {
       }
     })
     return NextResponse.json(tool)
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create tool' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message === 'Forbidden' ? 'Forbidden' : 'Failed to create tool' },
+      { status: error?.message === 'Forbidden' ? 403 : 500 }
+    )
   }
 }
