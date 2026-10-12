@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 
 export function Footer() {
   return (
@@ -96,25 +97,7 @@ export function Footer() {
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-foreground">Subscribe to our newsletter</h4>
               <p className="text-xs text-muted-foreground">Weekly intelligence briefing on autonomous agents and tools.</p>
-              <form className="flex flex-col gap-2" action="/api/newsletter" method="post">
-                <label htmlFor="newsletter-email" className="sr-only">Email address</label>
-                <div className="flex gap-2">
-                  <input
-                    id="newsletter-email"
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    className="w-full px-3 py-2 text-sm bg-muted/50 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
-                  >
-                    Subscribe
-                  </button>
-                </div>
-              </form>
+              <NewsletterForm variant="footer" />
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                 <span>Zero spam. Unsubscribe anytime.</span>
                 <Link href="/newsletter" className="text-primary hover:underline">

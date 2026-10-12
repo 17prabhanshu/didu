@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { Mail, ArrowLeft, CheckCircle, Clock, Reply } from "lucide-react";
+import { InboxReplyClient } from "@/components/admin/inbox-reply-client";
 
 export default async function AdminInboxDetailPage({
   params,
@@ -80,20 +81,8 @@ export default async function AdminInboxDetailPage({
               <p className="whitespace-pre-wrap">{message.message}</p>
             </div>
 
-            <div className="mt-8 flex items-center justify-between">
-              <Link
-                href="/admin/inbox"
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Inbox
-              </Link>
-              <button className="inline-flex items-center gap-2 bg-primary text-primary-foreground py-3 px-6 rounded-xl font-bold hover:opacity-90 transition-opacity">
-                <Reply className="w-5 h-5" />
-                Reply
-              </button>
+            <div className="mt-8">
+              <InboxReplyClient message={message} />
             </div>
           </div>
         </div>

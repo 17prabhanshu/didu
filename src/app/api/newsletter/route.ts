@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getClientIdentifier } from '@/lib/request-ip';
-import { newsletterSchema } from '@/lib/validation';
+import { newsletterSchema, newsletterFooterSchema } from '@/lib/validation';
 import { Redis } from "@upstash/redis";
+import { sendNewsletterConfirmationEmail } from '@/lib/email';
 
 // Use Upstash Redis for distributed rate limiting (works in serverless)
 const redis = process.env.UPSTASH_REDIS_REST_URL
@@ -80,15 +81,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: message }, { status: 400 });
     }
 
-    // Save to the database
-    // Use upsert to prevent unique constraint crashes if they subscribe twice
+    // Generate tokens for confirmation and unsubscribe workflows
+    const confirmationToken = crypto.randomUUID();
+    const unsubscribeToken = crypto.randomUUID();
+
+    // Save to the database using upsert
     await db.newsletterSubscriber.upsert({
       where: { email: parsed.data.email },
-      update: { status: 'ACTIVE', age: parsed.data.age, subscribedAt: new Date(), unsubscribedAt: null },
-      create: { email: parsed.data.email, age: parsed.data.age, status: 'ACTIVE', subscribedAt: new Date() }
+      update: { 
+        status: 'ACTIVE', 
+        age: parsed.data.age, 
+        subscribedAt: new Date(), 
+        unsubscribedAt: null,
+        confirmationToken,
+        unsubscribeToken
+      },
+      create: { 
+        email: parsed.data.email, 
+        age: parsed.data.age, 
+        status: 'ACTIVE', 
+        subscribedAt: new Date(),
+        confirmationToken,
+        unsubscribeToken
+      }
     });
 
-    return NextResponse.json({ success: true, message: "Subscribed successfully!" });
+    // Send confirmation/welcome briefing email
+    await sendNewsletterConfirmationEmail(parsed.data.email, confirmationToken);
+
+    // If submitted via standard browser HTML form navigation (not AJAX)
+    const acceptHeader = req.headers?.get?.('accept') || '';
+    if (acceptHeader.includes('text/html')) {
+      const baseUrl = req.url && req.url.startsWith('http') 
+        ? req.url 
+        : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
+      try {
+        return NextResponse.redirect(new URL('/newsletter?subscribed=true', baseUrl));
+      } catch (e) {
+        console.error("Redirect URL creation failed:", e);
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Subscribed successfully!",
+      redirectUrl: "/newsletter?subscribed=true"
+    });
   } catch (error) {
     console.error("Newsletter Subscription Error:", error);
     return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });

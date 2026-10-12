@@ -9,6 +9,7 @@ import { AnimatedHero } from '@/components/animations/animated-hero';
 import { ScrollReveal } from '@/components/animations/scroll-reveal';
 import { TiltCard } from '@/components/animations/tilt-card';
 import { Marquee } from '@/components/animations/marquee';
+import { NewsletterForm } from '@/components/newsletter/newsletter-form';
 
 export const metadata = {
   title: 'Agentverse | The Intelligence Layer for the Agentic Internet',
@@ -183,17 +184,7 @@ export default async function HomePage() {
           <p className="text-xl md:text-2xl font-medium opacity-80 mb-12 max-w-2xl mx-auto">
             Join the elite circle of developers getting our weekly intelligence report.
           </p>
-          <form className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto relative px-4">
-            <input 
-              type="email" 
-              placeholder="YOUR EMAIL" 
-              className="px-8 py-6 rounded-full flex-1 text-foreground bg-background border-none focus:outline-none focus:ring-4 focus:ring-primary text-lg font-bold uppercase tracking-wider"
-              required
-            />
-            <button type="submit" className="px-10 py-6 bg-primary text-primary-foreground font-black tracking-widest uppercase rounded-full hover:scale-105 transition-transform">
-              Subscribe
-            </button>
-          </form>
+          <NewsletterForm variant="homepage" />
         </ScrollReveal>
       </section>
     </div>

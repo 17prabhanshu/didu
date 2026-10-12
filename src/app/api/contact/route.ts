@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
 import { getClientIdentifier } from "@/lib/request-ip";
 import { Redis } from "@upstash/redis";
-import { sendContactFormNotification } from "@/lib/email";
+import { sendContactFormNotification, sendContactFormAutoReply } from "@/lib/email";
 
 const redis = process.env.UPSTASH_REDIS_REST_URL
   ? new Redis({
@@ -93,6 +93,9 @@ export async function POST(req: Request) {
       subject || 'No Subject',
       message
     );
+
+    // Send auto-reply confirmation to the submitter
+    await sendContactFormAutoReply(name, email);
 
     return NextResponse.json({ 
       success: true, 

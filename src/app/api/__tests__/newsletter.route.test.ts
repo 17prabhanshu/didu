@@ -86,12 +86,16 @@ describe('Newsletter API', () => {
         age: 25,
         subscribedAt: expect.any(Date),
         unsubscribedAt: null,
+        confirmationToken: expect.any(String),
+        unsubscribeToken: expect.any(String),
       },
       create: {
         email: 'test@example.com',
         age: 25,
         status: 'ACTIVE',
         subscribedAt: expect.any(Date),
+        confirmationToken: expect.any(String),
+        unsubscribeToken: expect.any(String),
       },
     })
   })

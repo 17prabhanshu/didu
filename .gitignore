@@ -63,8 +63,8 @@ AGENTS.md
 PROJECT_CONTEXT.md
 
 # Root scripts (moved to scripts/)
-*.js
-*.ts
+/*.js
+/*.ts
 !vitest.config.ts
 !vitest.setup.ts
 !eslint.config.mjs
@@ -72,7 +72,6 @@ PROJECT_CONTEXT.md
 !postcss.config.mjs
 !tailwind.config.js
 !tailwind.config.ts
-!src/lib/email.ts
 
 # Seed files (should be in prisma/)
 seed_*.ts

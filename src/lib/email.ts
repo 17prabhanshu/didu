@@ -302,3 +302,237 @@ export async function sendContactFormNotification(
     html,
   });
 }
+
+export async function sendContactFormAutoReply(
+  name: string,
+  email: string
+): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #7C3AED, #06B6D4); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; font-family: 'Syne', -apple-system, sans-serif; font-size: 28px; font-weight: 800; color: white;">Tecrese</h1>
+                  <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9);">Message Received</p>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: white; border-radius: 0 0 16px 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td>
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: #1e1b4b;">Hi ${name},</h2>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    Thank you for reaching out to Tecrese. We have received your inquiry and our editorial and research team is reviewing it.
+                  </p>
+                  <p style="margin: 0 0 24px; line-height: 1.6; color: #475569;">
+                    We usually respond within 24 to 48 business hours. If your inquiry is urgent or involves a security disclosure, we prioritize it accordingly.
+                  </p>
+                  <p style="margin: 0; font-size: 14px; color: #64748b;">Best regards,<br>The Tecrese Team</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "We received your message - Tecrese",
+    html,
+  });
+}
+
+export async function sendContactReplyEmail(
+  to: string,
+  recipientName: string,
+  originalSubject: string,
+  replyMessage: string
+): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #7C3AED, #06B6D4); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; font-family: 'Syne', -apple-system, sans-serif; font-size: 28px; font-weight: 800; color: white;">Tecrese</h1>
+                  <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9);">Reply from Support</p>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: white; border-radius: 0 0 16px 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td>
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: #1e1b4b;">Hi ${recipientName},</h2>
+                  <div style="margin: 0 0 24px; line-height: 1.6; color: #1e293b; background: #f8fafc; border-left: 4px solid #7C3AED; padding: 16px; border-radius: 4px; white-space: pre-wrap;">${replyMessage}</div>
+                  <p style="margin: 0; font-size: 14px; color: #64748b;">Best regards,<br>The Tecrese Team</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to,
+    subject: `Re: ${originalSubject || "Your inquiry"}`,
+    html,
+  });
+}
+
+export async function sendNewsletterWelcomeEmail(email: string): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #7C3AED, #06B6D4); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; font-family: 'Syne', -apple-system, sans-serif; font-size: 28px; font-weight: 800; color: white;">Tecrese</h1>
+                  <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9);">Welcome to the Community!</p>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: white; border-radius: 0 0 16px 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td>
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: #1e1b4b;">You're officially on the list! 🎉</h2>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    Your subscription to the Tecrese weekly intelligence briefing is confirmed. Every week, our research team dissects autonomous agent architectures, benchmark shifts, newly published tool protocols, and security disclosures.
+                  </p>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 24px 0;">
+                    <tr>
+                      <td align="center">
+                        <a href="${APP_URL}/newsletter" style="display: inline-block; background: linear-gradient(135deg, #7C3AED, #06B6D4); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none;">
+                          Browse Newsletter Archive
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin: 24px 0 0; font-size: 14px; color: #64748b;">
+                    Need to modify your preferences? You can visit our newsletter hub anytime at <a href="${APP_URL}/newsletter" style="color: #7C3AED;">${APP_URL}/newsletter</a>.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "Welcome to Tecrese AI Intelligence Briefing",
+    html,
+  });
+}
+
+export async function sendNewsletterUnsubscribeEmail(email: string): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #334155; border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; font-family: 'Syne', -apple-system, sans-serif; font-size: 28px; font-weight: 800; color: white;">Tecrese</h1>
+                  <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8);">Unsubscription Confirmed</p>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: white; border-radius: 0 0 16px 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td>
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: #1e1b4b;">You have been unsubscribed</h2>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    You will no longer receive weekly newsletters from Tecrese. We're sorry to see you go!
+                  </p>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    If this was a mistake, you can re-subscribe anytime at <a href="${APP_URL}/newsletter" style="color: #7C3AED;">${APP_URL}/newsletter</a>.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "You have been unsubscribed from Tecrese",
+    html,
+  });
+}
+
+export async function sendPasswordResetSuccessEmail(email: string, name?: string): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #10B981, #06B6D4); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+              <tr>
+                <td>
+                  <h1 style="margin: 0; font-family: 'Syne', -apple-system, sans-serif; font-size: 28px; font-weight: 800; color: white;">Tecrese</h1>
+                  <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9);">Security Alert</p>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: white; border-radius: 0 0 16px 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+              <tr>
+                <td>
+                  <h2 style="margin: 0 0 16px; font-size: 20px; color: #1e1b4b;">Password Successfully Changed</h2>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    Hi ${name || 'there'}, your Tecrese account password has been successfully updated. All previous active sessions have been invalidated.
+                  </p>
+                  <p style="margin: 0 0 16px; line-height: 1.6; color: #475569;">
+                    If you did not perform this change, please contact your administrator immediately or reach out to <a href="mailto:hello@tecrese.com" style="color: #7C3AED;">hello@tecrese.com</a>.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "Your Tecrese account password was changed",
+    html,
+  });
+}

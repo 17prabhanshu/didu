@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { z } from "zod";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
@@ -80,7 +81,15 @@ export default function AdminLoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Password</label>
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Password</label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input 
                 type="password" 
                 value={password} 

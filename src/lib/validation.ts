@@ -118,7 +118,19 @@ export const newsletterSchema = z.object({
     .number()
     .int('Age must be a whole number')
     .min(13, 'You must be at least 13 years old to subscribe')
-    .max(120, 'Age must be 120 or less'),
+    .max(120, 'Age must be 120 or less')
+    .optional(),
+})
+
+// Newsletter schema for footer form (email only, age optional)
+export const newsletterFooterSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  age: z.coerce
+    .number()
+    .int('Age must be a whole number')
+    .min(13, 'You must be at least 13 years old to subscribe')
+    .max(120, 'Age must be 120 or less')
+    .optional(),
 })
 
 // Media

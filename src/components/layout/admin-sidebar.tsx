@@ -63,7 +63,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { name: "Contributors", href: "/admin/contributors", icon: Users },
       { name: "Authors", href: "/admin/authors", icon: UserCheck },
-      { name: "Inbox", href: "/admin/contacts", icon: Mail },
+      { name: "Inbox", href: "/admin/inbox", icon: Mail },
       { name: "Subscribers", href: "/admin/subscribers", icon: Bell },
     ],
   },

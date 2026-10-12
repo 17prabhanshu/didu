@@ -1,0 +1,1 @@
+export { Logo, type LogoProps, default } from './Logo';

@@ -46,6 +46,10 @@ export function Navbar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   return (
     <>
       <header
@@ -119,11 +123,113 @@ export function Navbar() {
             <button
               className="p-2 text-foreground lg:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden fixed inset-x-0 top-16 bg-background/95 backdrop-blur-xl border-b border-border shadow-xl px-4 py-6 max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsSearchOpen(true);
+                  }}
+                  className="flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-muted-foreground"
+                >
+                  <span className="flex items-center gap-2">
+                    <Search className="w-4 h-4" />
+                    Search platform...
+                  </span>
+                  <span className="text-xs bg-background px-1.5 py-0.5 rounded border border-border">⌘K</span>
+                </button>
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2.5 rounded-xl border border-border bg-muted/50 text-foreground"
+                  aria-label="Toggle Theme"
+                >
+                  {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                {NAV_LINKS.map((link) => {
+                  const isActive = pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-between",
+                        isActive
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      {link.name}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-border grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <Link
+                  href="/dictionary"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors"
+                >
+                  Glossary & Terms
+                </Link>
+                <Link
+                  href="/authors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors"
+                >
+                  Research Authors
+                </Link>
+                <Link
+                  href="/newsletter"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors"
+                >
+                  Newsletter Hub
+                </Link>
+                <Link
+                  href="/submit"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors"
+                >
+                  Submit Tool / Agent
+                </Link>
+              </div>
+
+              <div className="pt-4 border-t border-border flex flex-col sm:flex-row gap-2">
+                <Link
+                  href="/contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors w-full"
+                >
+                  <Mail className="w-4 h-4" />
+                  Contact Us
+                </Link>
+                <Link
+                  href="/admin/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 bg-muted text-foreground border border-border py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-muted/80 transition-colors w-full"
+                >
+                  <span className="w-2 h-2 rounded-full bg-primary/80"></span>
+                  Admin Portal
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
       <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
