@@ -12,12 +12,27 @@ const loginSchema = z.object({
 });
 
 // ARCHITECTURE UPGRADE: Upstash Redis Rate Limiting vs Local Fallback
-const redis = process.env.UPSTASH_REDIS_REST_URL 
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
-  : null;
+function getSafeRedis(): Redis | null {
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+    if (
+      !url ||
+      !token ||
+      !url.startsWith('https://') ||
+      url.includes('your-redis.upstash.io') ||
+      url.includes('xxx.upstash.io') ||
+      token === 'your_redis_rest_token_here'
+    ) {
+      return null;
+    }
+    return new Redis({ url, token });
+  } catch {
+    return null;
+  }
+}
+
+const redis = getSafeRedis();
 
 // Local fallback memory map
 const rateLimitMap = new Map<string, { attempts: number; lockUntil: number }>();
@@ -29,15 +44,22 @@ export async function POST(req: Request) {
     const ip = getClientIdentifier(req);
     
     // 1. Check Rate Limit
+    let checkedRedis = false;
     if (redis) {
-      const attempts = await redis.get<number>(`rl:login:${ip}`) || 0;
-      if (attempts >= MAX_ATTEMPTS) {
-        return NextResponse.json(
-          { success: false, error: { message: `Too many attempts. Account locked.` } },
-          { status: 429 }
-        );
+      try {
+        const attempts = await redis.get<number>(`rl:login:${ip}`) || 0;
+        checkedRedis = true;
+        if (attempts >= MAX_ATTEMPTS) {
+          return NextResponse.json(
+            { success: false, error: { message: `Too many attempts. Account locked.` } },
+            { status: 429 }
+          );
+        }
+      } catch (e) {
+        console.warn("Login Redis rate limit warning (falling back to memory):", e);
       }
-    } else {
+    }
+    if (!checkedRedis) {
       const record = rateLimitMap.get(ip);
       if (record) {
         if (Date.now() < record.lockUntil) {
@@ -61,8 +83,12 @@ export async function POST(req: Request) {
     if (!isValid) return recordFailedAttempt(ip);
     
     // Successful login - clear their failure record
-    if (redis) await redis.del(`rl:login:${ip}`);
-    else rateLimitMap.delete(ip);
+    if (redis) {
+      try {
+        await redis.del(`rl:login:${ip}`);
+      } catch {}
+    }
+    rateLimitMap.delete(ip);
     
     await createSession(user.id, user.role);
     return NextResponse.json({ success: true, data: { id: user.id, email: user.email, name: user.name, role: user.role } });
@@ -84,10 +110,15 @@ export async function POST(req: Request) {
 }
 
 async function recordFailedAttempt(ip: string) {
+  let recordedInRedis = false;
   if (redis) {
-    const attempts = await redis.incr(`rl:login:${ip}`);
-    if (attempts === 1) await redis.expire(`rl:login:${ip}`, 15 * 60); // 15 min lock
-  } else {
+    try {
+      const attempts = await redis.incr(`rl:login:${ip}`);
+      if (attempts === 1) await redis.expire(`rl:login:${ip}`, 15 * 60); // 15 min lock
+      recordedInRedis = true;
+    } catch {}
+  }
+  if (!recordedInRedis) {
     const record = rateLimitMap.get(ip) || { attempts: 0, lockUntil: 0 };
     record.attempts += 1;
     if (record.attempts >= MAX_ATTEMPTS) record.lockUntil = Date.now() + LOCK_TIME_MS;

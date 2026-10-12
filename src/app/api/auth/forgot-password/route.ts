@@ -4,12 +4,27 @@ import { sendPasswordResetEmail } from '@/lib/email';
 import { getClientIdentifier } from '@/lib/request-ip';
 import { Redis } from '@upstash/redis';
 
-const redis = process.env.UPSTASH_REDIS_REST_URL
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
-  : null;
+function getSafeRedis(): Redis | null {
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+    if (
+      !url ||
+      !token ||
+      !url.startsWith('https://') ||
+      url.includes('your-redis.upstash.io') ||
+      url.includes('xxx.upstash.io') ||
+      token === 'your_redis_rest_token_here'
+    ) {
+      return null;
+    }
+    return new Redis({ url, token });
+  } catch {
+    return null;
+  }
+}
+
+const redis = getSafeRedis();
 
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -21,15 +36,19 @@ export async function POST(req: Request) {
 
     // Rate limiting
     if (redis) {
-      const attempts = await redis.get<number>(key) || 0;
-      if (attempts >= RATE_LIMIT_MAX) {
-        return NextResponse.json(
-          { success: false, error: { message: 'Too many requests. Please try again later.' } },
-          { status: 429 }
-        );
+      try {
+        const attempts = await redis.get<number>(key) || 0;
+        if (attempts >= RATE_LIMIT_MAX) {
+          return NextResponse.json(
+            { success: false, error: { message: 'Too many requests. Please try again later.' } },
+            { status: 429 }
+          );
+        }
+        await redis.incr(key);
+        if (attempts === 0) await redis.expire(key, 60 * 60);
+      } catch (e) {
+        console.warn('Forgot password Redis rate limit warning:', e);
       }
-      await redis.incr(key);
-      if (attempts === 0) await redis.expire(key, 60 * 60);
     }
 
     const { email } = await req.json();

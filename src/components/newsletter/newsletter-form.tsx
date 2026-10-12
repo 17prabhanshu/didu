@@ -32,7 +32,13 @@ export function NewsletterForm({ variant = "footer", className = "" }: Newslette
         body: JSON.stringify({ email: cleanEmail }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: { success?: boolean; error?: string } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { success: res.ok };
+      }
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Subscription failed. Please try again.");

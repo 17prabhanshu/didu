@@ -4,44 +4,78 @@ import { getClientIdentifier } from "@/lib/request-ip";
 import { Redis } from "@upstash/redis";
 import { sendContactFormNotification, sendContactFormAutoReply } from "@/lib/email";
 
-const redis = process.env.UPSTASH_REDIS_REST_URL
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
-  : null;
+function getSafeRedis(): Redis | null {
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+    if (
+      !url ||
+      !token ||
+      !url.startsWith('https://') ||
+      url.includes('your-redis.upstash.io') ||
+      url.includes('xxx.upstash.io') ||
+      token === 'your_redis_rest_token_here'
+    ) {
+      return null;
+    }
+    return new Redis({ url, token });
+  } catch {
+    return null;
+  }
+}
+
+const redis = getSafeRedis();
 
 const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
-const MAX_SUBMISSIONS = 3;
+const MAX_SUBMISSIONS = 10;
 const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
 async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
   if (redis) {
-    const key = `rl:contact:${ip}`;
-    const count = await redis.incr(key);
-    if (count === 1) {
-      await redis.expire(key, 60 * 60); // 1 hour
-    }
-    if (count > MAX_SUBMISSIONS) {
-      return { allowed: false, remaining: 0 };
-    }
-    return { allowed: true, remaining: MAX_SUBMISSIONS - count };
-  } else {
-    const record = rateLimitMap.get(ip);
-    if (record) {
-      if (Date.now() < record.lockUntil) {
+    try {
+      const key = `rl:contact:${ip}`;
+      const count = await withTimeout(redis.incr(key), 1500);
+      if (count === 1) {
+        await withTimeout(redis.expire(key, 60 * 60), 1500);
+      }
+      if (count > MAX_SUBMISSIONS) {
         return { allowed: false, remaining: 0 };
       }
-      if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
+      return { allowed: true, remaining: MAX_SUBMISSIONS - count };
+    } catch (err) {
+      console.warn("Upstash Redis contact rate limit warning (falling back to memory):", err);
     }
-    const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
-    currentRecord.count += 1;
-    if (currentRecord.count >= MAX_SUBMISSIONS) {
-      currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
-    }
-    rateLimitMap.set(ip, currentRecord);
-    return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
   }
+
+  const record = rateLimitMap.get(ip);
+  if (record) {
+    if (Date.now() < record.lockUntil) {
+      return { allowed: false, remaining: 0 };
+    }
+    if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
+  }
+  const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
+  currentRecord.count += 1;
+  if (currentRecord.count >= MAX_SUBMISSIONS) {
+    currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
+  }
+  rateLimitMap.set(ip, currentRecord);
+  return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
 }
 
 export async function POST(req: Request) {
@@ -84,34 +118,31 @@ export async function POST(req: Request) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
 
-    // Persist to the database with resilient fallback
+    // Persist to the database with resilient 3s timeout fallback
     let contactId: string | undefined;
     try {
-      const contactMessage = await db.contactMessage.create({
-        data: { name: cleanName, email: cleanEmail, subject: subject || '', message, status: 'UNREAD' }
-      });
+      const contactMessage = await withTimeout(
+        db.contactMessage.create({
+          data: { name: cleanName, email: cleanEmail, subject: subject || '', message, status: 'UNREAD' }
+        }),
+        3000
+      );
       contactId = contactMessage.id;
     } catch (dbError) {
       console.warn("Contact message DB create warning (resiliently proceeding with emails):", dbError);
     }
 
-    // Send email notification to admin
+    // Send email notifications with timeout guard
     try {
-      await sendContactFormNotification(
-        cleanName,
-        cleanEmail,
-        subject || 'No Subject',
-        message
+      await withTimeout(
+        Promise.allSettled([
+          sendContactFormNotification(cleanName, cleanEmail, subject || 'No Subject', message),
+          sendContactFormAutoReply(cleanName, cleanEmail),
+        ]),
+        3500
       );
     } catch (e) {
-      console.warn("Admin notification email failed:", e);
-    }
-
-    // Send auto-reply confirmation to the submitter
-    try {
-      await sendContactFormAutoReply(cleanName, cleanEmail);
-    } catch (e) {
-      console.warn("Auto-reply email failed:", e);
+      console.warn("Contact email dispatch warning:", e);
     }
 
     return NextResponse.json({ 

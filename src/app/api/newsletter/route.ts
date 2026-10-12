@@ -1,51 +1,84 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getClientIdentifier } from '@/lib/request-ip';
-import { newsletterSchema, newsletterFooterSchema } from '@/lib/validation';
+import { newsletterSchema } from '@/lib/validation';
 import { Redis } from "@upstash/redis";
-import { sendNewsletterConfirmationEmail } from '@/lib/email';
+import { sendNewsletterConfirmationEmail, syncNewsletterAudience } from '@/lib/email';
 
-// Use Upstash Redis for distributed rate limiting (works in serverless)
-const redis = process.env.UPSTASH_REDIS_REST_URL
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    })
-  : null;
+function getSafeRedis(): Redis | null {
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+    if (
+      !url ||
+      !token ||
+      !url.startsWith('https://') ||
+      url.includes('your-redis.upstash.io') ||
+      url.includes('xxx.upstash.io') ||
+      token === 'your_redis_rest_token_here'
+    ) {
+      return null;
+    }
+    return new Redis({ url, token });
+  } catch {
+    return null;
+  }
+}
 
-// Local fallback for development only
+const redis = getSafeRedis();
+
+// Local fallback for development or when Upstash is not configured
 const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
-const MAX_SUBMISSIONS = 5;
+const MAX_SUBMISSIONS = 20;
 const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
 async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
   if (redis) {
-    const key = `rl:newsletter:${ip}`;
-    const count = await redis.incr(key);
-    if (count === 1) {
-      await redis.expire(key, 60 * 60); // 1 hour
-    }
-    if (count > MAX_SUBMISSIONS) {
-      return { allowed: false, remaining: 0 };
-    }
-    return { allowed: true, remaining: MAX_SUBMISSIONS - count };
-  } else {
-    // Fallback to in-memory (dev only)
-    const record = rateLimitMap.get(ip);
-    if (record) {
-      if (Date.now() < record.lockUntil) {
+    try {
+      const key = `rl:newsletter:${ip}`;
+      const count = await withTimeout(redis.incr(key), 1500);
+      if (count === 1) {
+        await withTimeout(redis.expire(key, 60 * 60), 1500);
+      }
+      if (count > MAX_SUBMISSIONS) {
         return { allowed: false, remaining: 0 };
       }
-      if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
+      return { allowed: true, remaining: MAX_SUBMISSIONS - count };
+    } catch (err) {
+      console.warn("Upstash Redis rate limit warning (falling back to memory):", err);
     }
-    const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
-    currentRecord.count += 1;
-    if (currentRecord.count >= MAX_SUBMISSIONS) {
-      currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
-    }
-    rateLimitMap.set(ip, currentRecord);
-    return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
   }
+
+  // Fallback to in-memory
+  const record = rateLimitMap.get(ip);
+  if (record) {
+    if (Date.now() < record.lockUntil) {
+      return { allowed: false, remaining: 0 };
+    }
+    if (Date.now() > record.lockUntil) rateLimitMap.delete(ip);
+  }
+  const currentRecord = rateLimitMap.get(ip) || { count: 0, lockUntil: 0 };
+  currentRecord.count += 1;
+  if (currentRecord.count >= MAX_SUBMISSIONS) {
+    currentRecord.lockUntil = Date.now() + LOCK_TIME_MS;
+  }
+  rateLimitMap.set(ip, currentRecord);
+  return { allowed: true, remaining: MAX_SUBMISSIONS - currentRecord.count };
 }
 
 export async function POST(req: Request) {
@@ -89,36 +122,67 @@ export async function POST(req: Request) {
     const confirmationToken = crypto.randomUUID();
     const unsubscribeToken = crypto.randomUUID();
 
-    // Save to the database with resilient fallback if DB is cold or unreachable
+    // Save to the database with a 3s timeout + fallback if token columns aren't migrated yet
     try {
-      await db.newsletterSubscriber.upsert({
-        where: { email: parsed.data.email },
-        update: { 
-          status: 'ACTIVE', 
-          age: parsed.data.age, 
-          subscribedAt: new Date(), 
-          unsubscribedAt: null,
-          confirmationToken,
-          unsubscribeToken
-        },
-        create: { 
-          email: parsed.data.email, 
-          age: parsed.data.age, 
-          status: 'ACTIVE', 
-          subscribedAt: new Date(),
-          confirmationToken,
-          unsubscribeToken
-        }
-      });
+      await withTimeout(
+        db.newsletterSubscriber.upsert({
+          where: { email: parsed.data.email },
+          update: { 
+            status: 'ACTIVE', 
+            age: parsed.data.age, 
+            subscribedAt: new Date(), 
+            unsubscribedAt: null,
+            confirmationToken,
+            unsubscribeToken
+          },
+          create: { 
+            email: parsed.data.email, 
+            age: parsed.data.age, 
+            status: 'ACTIVE', 
+            subscribedAt: new Date(),
+            confirmationToken,
+            unsubscribeToken
+          }
+        }),
+        3000
+      );
     } catch (dbError) {
-      console.warn("Newsletter DB upsert warning (resiliently proceeding):", dbError);
+      console.warn("Newsletter primary DB upsert warning, attempting legacy schema fallback:", dbError);
+      try {
+        await withTimeout(
+          db.newsletterSubscriber.upsert({
+            where: { email: parsed.data.email },
+            update: {
+              status: 'ACTIVE',
+              age: parsed.data.age,
+              subscribedAt: new Date(),
+              unsubscribedAt: null,
+            },
+            create: {
+              email: parsed.data.email,
+              age: parsed.data.age,
+              status: 'ACTIVE',
+              subscribedAt: new Date(),
+            },
+          }),
+          2000
+        );
+      } catch (fallbackError) {
+        console.warn("Newsletter legacy DB upsert warning (resiliently proceeding):", fallbackError);
+      }
     }
 
-    // Send confirmation/welcome briefing email
+    // Sync subscriber to external newsletter audience (Resend Contacts / Beehiiv) & send email
     try {
-      await sendNewsletterConfirmationEmail(parsed.data.email, confirmationToken);
+      await withTimeout(
+        Promise.allSettled([
+          syncNewsletterAudience(parsed.data.email),
+          sendNewsletterConfirmationEmail(parsed.data.email, confirmationToken),
+        ]),
+        3500
+      );
     } catch (emailError) {
-      console.warn("Newsletter email dispatch warning:", emailError);
+      console.warn("Newsletter email/audience dispatch warning:", emailError);
     }
 
     // If submitted via standard browser HTML form navigation (not AJAX)

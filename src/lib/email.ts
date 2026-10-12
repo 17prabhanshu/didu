@@ -1,5 +1,6 @@
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@tecrese.com';
-const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://didu-five.vercel.app';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Tecrese <noreply@tecrese.com>';
+const FALLBACK_FROM_EMAIL = 'Tecrese <onboarding@resend.dev>';
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
 
 export interface EmailTemplate {
   to: string;
@@ -9,11 +10,52 @@ export interface EmailTemplate {
 }
 
 async function getResend() {
-  if (!process.env.RESEND_API_KEY) {
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key || key === 'your_resend_api_key_here') {
     return null;
   }
   const { Resend } = await import('resend');
-  return new Resend(process.env.RESEND_API_KEY);
+  return new Resend(key);
+}
+
+export async function syncNewsletterAudience(email: string): Promise<void> {
+  // 1. Sync with Resend Contacts / Audiences if configured
+  try {
+    const resend = await getResend();
+    const audienceId = process.env.RESEND_AUDIENCE_ID?.trim();
+    if (resend && audienceId) {
+      await resend.contacts.create({
+        email,
+        unsubscribed: false,
+        audienceId,
+      });
+    }
+  } catch (err) {
+    console.warn('Resend audience sync warning:', err);
+  }
+
+  // 2. Sync with Beehiiv if configured
+  try {
+    const beehiivKey = process.env.BEEHIIV_API_KEY?.trim();
+    const beehiivPubId = process.env.BEEHIIV_PUBLICATION_ID?.trim();
+    if (beehiivKey && beehiivPubId) {
+      await fetch(`https://api.beehiiv.com/v2/publications/${beehiivPubId}/subscriptions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${beehiivKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          reactivate_existing: true,
+          send_welcome_email: true,
+          utm_source: 'tecrese_website',
+        }),
+      });
+    }
+  } catch (err) {
+    console.warn('Beehiiv audience sync warning:', err);
+  }
 }
 
 export async function sendEmail(template: EmailTemplate): Promise<boolean> {
@@ -24,13 +66,26 @@ export async function sendEmail(template: EmailTemplate): Promise<boolean> {
   }
 
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: template.to,
       subject: template.subject,
       html: template.html,
       text: template.text,
     });
+
+    if (result.error) {
+      console.warn('Primary FROM_EMAIL rejected by Resend, retrying with fallback onboarding@resend.dev:', result.error);
+      const retry = await resend.emails.send({
+        from: FALLBACK_FROM_EMAIL,
+        to: template.to,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      });
+      return !retry.error;
+    }
+
     return true;
   } catch (error) {
     console.error('Email send failed:', error);
