@@ -21,12 +21,13 @@ model User {
   updatedAt          DateTime            @updatedAt
   deletedAt          DateTime?
 
-  sessions           Session[]
-  authors            Author[]
-  uploadedMedia      MediaAsset[]
-  redirectsCreated   Redirect[]
-  auditLogs          AuditLog[]
-  contributorProfile ContributorProfile?
+  sessions              Session[]
+  authors               Author[]
+  uploadedMedia         MediaAsset[]
+  redirectsCreated      Redirect[]
+  auditLogs             AuditLog[]
+  contributorProfile    ContributorProfile?
+  passwordResetTokens   PasswordResetToken[]
 }
 
 model Session {
@@ -432,15 +433,20 @@ model AuditLog {
 }
 
 model NewsletterSubscriber {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  age            Int?
-  status         String    // ACTIVE, UNSUBSCRIBED
-  subscribedAt   DateTime?
-  unsubscribedAt DateTime?
-  createdAt      DateTime  @default(now())
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  age                Int?
+  status             String    // ACTIVE, UNSUBSCRIBED, PENDING
+  subscribedAt       DateTime?
+  unsubscribedAt     DateTime?
+  confirmedAt        DateTime?
+  confirmationToken  String?   @unique
+  unsubscribeToken   String?   @unique
+  createdAt          DateTime  @default(now())
 
   @@index([status])
+  @@index([confirmationToken])
+  @@index([unsubscribeToken])
 }
 
 model Comparison {
@@ -505,4 +511,15 @@ model ContactMessage {
   createdAt DateTime @default(now())
 
   @@index([status])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
 }

@@ -61,7 +61,7 @@ describe('Contact API', () => {
 
     expect(response.status).toBe(200)
     expect(data.success).toBe(true)
-    expect(data.message).toBe('Message sent successfully!')
+    expect(data.message).toBe('Message sent successfully! We\'ll get back to you soon.')
     expect(db.contactMessage.create).toHaveBeenCalledWith({
       data: {
         name: 'Test User',

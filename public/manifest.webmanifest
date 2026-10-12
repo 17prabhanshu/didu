@@ -1,0 +1,66 @@
+{
+  "name": "Tecrese - The Intelligence Layer for the Agentic Internet",
+  "short_name": "Tecrese",
+  "description": "The intelligence layer for the agentic internet. Discover, compare, and integrate AI agents, tools, and models.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["technology", "productivity", "developer"],
+  "icons": [
+    {
+      "src": "/images/brand/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/brand/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/brand/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/brand/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Agents Directory",
+      "short_name": "Agents",
+      "description": "Browse AI agents",
+      "url": "/agents",
+      "icons": [{ "src": "/images/brand/favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tools Directory",
+      "short_name": "Tools",
+      "description": "Browse AI tools",
+      "url": "/tools",
+      "icons": [{ "src": "/images/brand/favicon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Models Directory",
+      "short_name": "Models",
+      "description": "Browse AI models",
+      "url": "/models",
+      "icons": [{ "src": "/images/brand/favicon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

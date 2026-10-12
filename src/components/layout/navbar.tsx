@@ -7,6 +7,7 @@ import { Search, Menu, X, Sun, Moon, PenLine, Mail } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useTheme } from "./theme-provider";
 import { CommandPalette } from "../ui/command-palette";
+import { Logo } from "@/components/brand/Logo";
 
 const NAV_LINKS = [
   { name: "Agents", href: "/agents" },
@@ -56,11 +57,11 @@ export function Navbar() {
         )}
       >
         <div className="container mx-auto px-4 h-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors">
-              <span className="font-bold text-primary">A</span>
-            </div>
-            <span className="font-bold text-lg tracking-tight hidden sm:block">Agentverse</span>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <Logo variant="default" size="sm" />
+            <span className="font-heading font-extrabold text-xl tracking-tight hidden sm:block bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-primary">
+              Tecrese
+            </span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6">

@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
 import { getClientIdentifier } from "@/lib/request-ip";
 import { Redis } from "@upstash/redis";
+import { sendContactFormNotification } from "@/lib/email";
 
-// Use Upstash Redis for distributed rate limiting (works in serverless)
 const redis = process.env.UPSTASH_REDIS_REST_URL
   ? new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
@@ -11,7 +11,6 @@ const redis = process.env.UPSTASH_REDIS_REST_URL
     })
   : null;
 
-// Local fallback for development only
 const rateLimitMap = new Map<string, { count: number; lockUntil: number }>();
 const MAX_SUBMISSIONS = 3;
 const LOCK_TIME_MS = 60 * 60 * 1000; // 1 hour
@@ -28,7 +27,6 @@ async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining
     }
     return { allowed: true, remaining: MAX_SUBMISSIONS - count };
   } else {
-    // Fallback to in-memory (dev only)
     const record = rateLimitMap.get(ip);
     if (record) {
       if (Date.now() < record.lockUntil) {
@@ -84,11 +82,23 @@ export async function POST(req: Request) {
     }
 
     // Persist to the database so Admins can read it in the Inbox
-    await db.contactMessage.create({
+    const contactMessage = await db.contactMessage.create({
       data: { name, email, subject: subject || '', message, status: 'UNREAD' }
     });
 
-    return NextResponse.json({ success: true, message: "Message sent successfully!" });
+    // Send email notification to admin
+    await sendContactFormNotification(
+      name,
+      email,
+      subject || 'No Subject',
+      message
+    );
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Message sent successfully! We'll get back to you soon.",
+      id: contactMessage.id
+    });
   } catch (error) {
     console.error("Contact API Error:", error);
     return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });

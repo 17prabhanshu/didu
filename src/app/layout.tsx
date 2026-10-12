@@ -6,6 +6,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { Providers } from "@/components/providers";
+import { PixelCat } from "@/components/animations/pixel-cat";
+import CookieConsent from "@/components/cookie-consent/CookieConsent";
+import { OrganizationJSONLD, WebsiteJSONLD } from "@/components/seo/JSONLD";
 
 const syne = localFont({
   src: "./fonts/syne-latin.woff2",
@@ -30,24 +34,78 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'),
   title: {
     template: "%s | Tecrese",
-    default: "Tecrese - Discover AI Agents and Tools",
+    default: "Tecrese - The Intelligence Layer for the Agentic Internet",
   },
-  description: "The premier platform for discovering, building, and learning about AI agents, tools, and the models that power them.",
+  description: "The intelligence layer for the agentic internet. Discover, compare, and integrate AI agents, tools, and models.",
+  keywords: [
+    "AI agents",
+    "AI tools",
+    "machine learning models",
+    "agentic AI",
+    "LLM applications",
+    "model context protocol",
+    "autonomous agents",
+    "coding agents",
+  ],
+  authors: [{ name: "Tecrese Editorial Team" }],
+  creator: "Tecrese",
+  publisher: "Tecrese",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
-    title: "Tecrese",
-    description: "The premier platform for discovering, building, and learning about AI agents",
     type: "website",
+    locale: "en_US",
+    url: "https://tecrese.com",
+    siteName: "Tecrese",
+    title: "Tecrese - The Intelligence Layer for the Agentic Internet",
+    description: "The intelligence layer for the agentic internet. Discover, compare, and integrate AI agents, tools, and models.",
+    images: [
+      {
+        url: "/api/og?type=default",
+        width: 1200,
+        height: 630,
+        alt: "Tecrese - The Intelligence Layer for the Agentic Internet",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tecrese",
-    description: "The premier platform for discovering, building, and learning about AI agents",
+    title: "Tecrese - The Intelligence Layer for the Agentic Internet",
+    description: "The intelligence layer for the agentic internet. Discover, compare, and integrate AI agents, tools, and models.",
+    images: ["/api/og?type=default"],
+    creator: "@tecrese",
+  },
+  icons: {
+    icon: [
+      { url: "/images/brand/favicon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/images/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/images/brand/favicon-16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [
+      { url: "/images/brand/apple-touch-icon.svg", type: "image/svg+xml", sizes: "180x180" },
+    ],
+    shortcut: "/favicon.ico",
+    other: [
+      {
+        rel: "manifest",
+        url: "/manifest.webmanifest",
+      },
+    ],
+  },
+  manifest: "/manifest.webmanifest",
+  verification: {
+    google: "google-site-verification-code",
   },
 };
-
-import { Providers } from "@/components/providers";
-import { PixelCat } from "@/components/animations/pixel-cat";
-import { CookieBanner } from "@/components/layout/cookie-banner";
 
 export default function RootLayout({
   children,
@@ -57,11 +115,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${syne.variable} ${jakarta.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen flex flex-col`}>
+        <OrganizationJSONLD />
+        <WebsiteJSONLD />
         <ThemeProvider defaultTheme="system" storageKey="agentverse-theme">
           <Providers>
             <PixelCat />
             {children}
-            <CookieBanner />
+            <CookieConsent />
           </Providers>
         </ThemeProvider>
       </body>
