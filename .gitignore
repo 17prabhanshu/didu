@@ -72,6 +72,7 @@ PROJECT_CONTEXT.md
 !postcss.config.mjs
 !tailwind.config.js
 !tailwind.config.ts
+!src/lib/email.ts
 
 # Seed files (should be in prisma/)
 seed_*.ts
