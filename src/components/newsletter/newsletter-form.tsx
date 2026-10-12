@@ -16,7 +16,8 @@ export function NewsletterForm({ variant = "footer", className = "" }: Newslette
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -28,7 +29,7 @@ export function NewsletterForm({ variant = "footer", className = "" }: Newslette
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: cleanEmail }),
       });
 
       const data = await res.json();

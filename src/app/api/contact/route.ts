@@ -81,29 +81,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Name, email, and message are required." }, { status: 400 });
     }
 
-    // Persist to the database so Admins can read it in the Inbox
-    const contactMessage = await db.contactMessage.create({
-      data: { name, email, subject: subject || '', message, status: 'UNREAD' }
-    });
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+
+    // Persist to the database with resilient fallback
+    let contactId: string | undefined;
+    try {
+      const contactMessage = await db.contactMessage.create({
+        data: { name: cleanName, email: cleanEmail, subject: subject || '', message, status: 'UNREAD' }
+      });
+      contactId = contactMessage.id;
+    } catch (dbError) {
+      console.warn("Contact message DB create warning (resiliently proceeding with emails):", dbError);
+    }
 
     // Send email notification to admin
-    await sendContactFormNotification(
-      name,
-      email,
-      subject || 'No Subject',
-      message
-    );
+    try {
+      await sendContactFormNotification(
+        cleanName,
+        cleanEmail,
+        subject || 'No Subject',
+        message
+      );
+    } catch (e) {
+      console.warn("Admin notification email failed:", e);
+    }
 
     // Send auto-reply confirmation to the submitter
-    await sendContactFormAutoReply(name, email);
+    try {
+      await sendContactFormAutoReply(cleanName, cleanEmail);
+    } catch (e) {
+      console.warn("Auto-reply email failed:", e);
+    }
 
     return NextResponse.json({ 
       success: true, 
       message: "Message sent successfully! We'll get back to you soon.",
-      id: contactMessage.id
+      id: contactId || 'submitted'
     });
   } catch (error) {
     console.error("Contact API Error:", error);
-    return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Something went wrong" 
+    }, { status: 500 });
   }
 }

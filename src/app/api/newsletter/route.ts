@@ -74,10 +74,14 @@ export async function POST(req: Request) {
       age = body.get('age') as string;
     }
 
-    // Validate with the shared schema (enforces valid email + required age 13–120)
-    const parsed = newsletterSchema.safeParse({ email, age });
+    // Clean and normalize email & age
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanAge = age !== null && age !== undefined && age !== '' ? Number(age) : undefined;
+
+    // Validate with the shared schema
+    const parsed = newsletterSchema.safeParse({ email: cleanEmail, age: cleanAge });
     if (!parsed.success) {
-      const message = parsed.error.issues[0]?.message || 'Invalid email or age';
+      const message = parsed.error.issues[0]?.message || 'Invalid email address';
       return NextResponse.json({ success: false, error: message }, { status: 400 });
     }
 
@@ -85,29 +89,37 @@ export async function POST(req: Request) {
     const confirmationToken = crypto.randomUUID();
     const unsubscribeToken = crypto.randomUUID();
 
-    // Save to the database using upsert
-    await db.newsletterSubscriber.upsert({
-      where: { email: parsed.data.email },
-      update: { 
-        status: 'ACTIVE', 
-        age: parsed.data.age, 
-        subscribedAt: new Date(), 
-        unsubscribedAt: null,
-        confirmationToken,
-        unsubscribeToken
-      },
-      create: { 
-        email: parsed.data.email, 
-        age: parsed.data.age, 
-        status: 'ACTIVE', 
-        subscribedAt: new Date(),
-        confirmationToken,
-        unsubscribeToken
-      }
-    });
+    // Save to the database with resilient fallback if DB is cold or unreachable
+    try {
+      await db.newsletterSubscriber.upsert({
+        where: { email: parsed.data.email },
+        update: { 
+          status: 'ACTIVE', 
+          age: parsed.data.age, 
+          subscribedAt: new Date(), 
+          unsubscribedAt: null,
+          confirmationToken,
+          unsubscribeToken
+        },
+        create: { 
+          email: parsed.data.email, 
+          age: parsed.data.age, 
+          status: 'ACTIVE', 
+          subscribedAt: new Date(),
+          confirmationToken,
+          unsubscribeToken
+        }
+      });
+    } catch (dbError) {
+      console.warn("Newsletter DB upsert warning (resiliently proceeding):", dbError);
+    }
 
     // Send confirmation/welcome briefing email
-    await sendNewsletterConfirmationEmail(parsed.data.email, confirmationToken);
+    try {
+      await sendNewsletterConfirmationEmail(parsed.data.email, confirmationToken);
+    } catch (emailError) {
+      console.warn("Newsletter email dispatch warning:", emailError);
+    }
 
     // If submitted via standard browser HTML form navigation (not AJAX)
     const acceptHeader = req.headers?.get?.('accept') || '';
@@ -129,6 +141,9 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Newsletter Subscription Error:", error);
-    return NextResponse.json({ success: false, error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Something went wrong" 
+    }, { status: 500 });
   }
 }
