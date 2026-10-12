@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { newsletterSchema } from '@/lib/validation';
 import { checkRateLimit, rateLimiters, rateLimitHeaders } from '@/lib/rate-limiter';
 import { sendNewsletterConfirmationEmail, syncNewsletterAudience } from '@/lib/email';
+import { checkIdempotency, storeIdempotencyResponse, getIdempotencyKey } from '@/lib/idempotency';
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
@@ -20,6 +21,17 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 export async function POST(req: Request) {
   try {
+    // Idempotency check
+    const idempotencyKey = getIdempotencyKey(req);
+    if (idempotencyKey) {
+      const { isDuplicate, cachedResponse } = await checkIdempotency(idempotencyKey);
+      if (isDuplicate && cachedResponse) {
+        return NextResponse.json(cachedResponse, { 
+          headers: { ...rateLimitHeaders({ allowed: true, remaining: 0, resetMs: 0 }), 'X-Idempotency-Replay': 'true' }
+        });
+      }
+    }
+
     // Rate limiting
     const rateLimit = await checkRateLimit(req, rateLimiters.newsletter);
     
@@ -125,6 +137,17 @@ export async function POST(req: Request) {
       console.warn("Newsletter email/audience dispatch warning:", emailError);
     }
 
+    const responseData = { 
+      success: true, 
+      message: "Subscribed successfully!",
+      redirectUrl: "/newsletter?subscribed=true"
+    };
+
+    // Store idempotency response
+    if (idempotencyKey) {
+      await storeIdempotencyResponse(idempotencyKey, responseData);
+    }
+
     // If submitted via standard browser HTML form navigation (not AJAX)
     const acceptHeader = req.headers?.get?.('accept') || '';
     if (acceptHeader.includes('text/html')) {
@@ -138,11 +161,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Subscribed successfully!",
-      redirectUrl: "/newsletter?subscribed=true"
-    }, {
+    return NextResponse.json(responseData, {
       headers: rateLimitHeaders(rateLimit)
     });
   } catch (error) {

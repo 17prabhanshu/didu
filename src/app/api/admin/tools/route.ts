@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/session'
+import { createAuditLog } from '@/lib/audit'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(req: Request) {
   try {
@@ -20,7 +22,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
+    const session = await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR'])
     const body = await req.json()
     const tool = await db.tool.create({
       data: {
@@ -30,6 +32,16 @@ export async function POST(req: Request) {
         status: body.status || 'DRAFT',
       }
     })
+
+    await createAuditLog({
+      action: 'CREATE',
+      entityType: 'Tool',
+      entityId: tool.id,
+      metadata: { name: tool.name, status: tool.status },
+      userId: session.userId,
+    })
+
+    revalidatePath('/', 'layout')
     return NextResponse.json(tool)
   } catch (error: any) {
     return NextResponse.json(

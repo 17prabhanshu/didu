@@ -7,32 +7,39 @@
 - [x] Fix rate limiting `unknown` IP bucket bypass (src/lib/request-ip.ts - fingerprint fallback)
 - [x] Require Upstash Redis in production (src/lib/rate-limiter.ts - fail closed)
 
-## Phase 2: High-Risk API ✅ DONE
+## Phase 2: High-Risk API Hardening ✅ DONE
 - [x] Secure generic CRUD endpoint with field allowlists & audit logging (src/app/api/admin/crud/route.ts)
 - [x] Remove silent content masking protocol (removed applyMaskingProtocol)
 - [x] Add missing composite database indexes (prisma/schema.prisma - Article, NewsletterSubscriber, ContactMessage)
-- [x] Add audit logging for all admin actions (src/lib/audit.ts, integrated in CRUD, inbox)
+- [x] Add audit logging for all admin actions (src/lib/audit.ts, integrated in CRUD, inbox, articles, agents, tools, models, categories, security-alerts, glossary, redirects)
 
-## Phase 3: Rate Limiting & Search ✅ DONE
+## Phase 3: Rate Limiting, Search & API Versioning ✅ DONE
 - [x] Centralize rate limiting into single service (src/lib/rate-limiter.ts)
 - [x] Implement PostgreSQL full-text search (prisma/migrations/add_fulltext_search/migration.sql, updated search route)
 - [x] Add API versioning structure (/api/v1/)
 
-## Phase 4: Observability & Headers ✅ DONE
+## Phase 4: Observability, Headers & Idempotency ✅ DONE
 - [x] Add strict CSP and security headers to API routes (next.config.ts)
-- [x] Structured logging with sanitization (src/lib/logger.ts already existed)
+- [x] Structured logging with sanitization (src/lib/logger.ts)
 - [x] Add health check with Redis status (src/app/api/health/route.ts)
 - [x] Add session cleanup cron job (src/app/api/cron/cleanup-sessions/route.ts)
+- [x] Add idempotency key support (src/lib/idempotency.ts, newsletter, contact routes)
+- [x] Fail-closed rate limiter in production (src/lib/rate-limiter.ts)
+- [x] Database connection pooling params (src/lib/db.ts)
 
 ## Phase 5: Code Quality ✅ DONE
 - [x] Fix TypeScript `any` usage in CRUD (using Prisma.dmmf)
 - [x] Add zod schemas for all models (src/lib/validation.ts - added ArticleRevision, ExternalLink, InternalLink, Comparison, Review, Framework, MCPServer, Company, Author)
 - [x] Update all API routes to use centralized rate limiter (newsletter, contact, login)
+- [x] All 84 tests pass, zero TypeScript errors
 
 ## New Files Created:
-- src/lib/csrf.ts - CSRF token generation/validation
-- src/lib/rate-limiter.ts - Centralized rate limiting with Redis
+- src/lib/csrf.ts - CSRF token generation/validation with Origin/Sec-Fetch-Site checks
+- src/lib/rate-limiter.ts - Centralized rate limiting with Redis + in-memory fallback, fail-closed in prod
 - src/lib/audit.ts - Audit logging service
+- src/lib/withAudit.ts - Wrapper for audit logging (created but inline approach used)
+- src/lib/idempotency.ts - Idempotency key support with Redis + in-memory fallback
+- src/lib/withAudit.ts - Audit wrapper utility
 - src/app/api/auth/csrf/route.ts - CSRF token endpoint
 - src/app/api/cron/cleanup-sessions/route.ts - Session cleanup cron
 - src/app/api/v1/route.ts - API version info
@@ -44,17 +51,26 @@
 - src/lib/request-ip.ts - Fingerprint fallback instead of 'unknown' bucket
 - src/app/api/auth/forgot-password/route.ts - Hash reset tokens
 - src/app/api/auth/reset-password/route.ts - Verify hashed tokens
-- src/app/api/newsletter/route.ts - Use centralized rate limiter
-- src/app/api/contact/route.ts - Use centralized rate limiter
+- src/app/api/newsletter/route.ts - Use centralized rate limiter + idempotency
+- src/app/api/contact/route.ts - Use centralized rate limiter + idempotency
 - src/app/api/auth/login/route.ts - Use centralized rate limiter
 - src/app/api/admin/crud/route.ts - Field allowlists, audit logging, removed masking
 - src/app/api/admin/inbox/[id]/route.ts - Audit logging on reply/status change
+- src/app/api/admin/articles/route.ts - Audit logging
+- src/app/api/admin/agents/route.ts - Audit logging
+- src/app/api/admin/tools/route.ts - Audit logging
+- src/app/api/admin/models/route.ts - Audit logging
+- src/app/api/admin/categories/route.ts - Audit logging
+- src/app/api/admin/security-alerts/route.ts - Audit logging
+- src/app/api/admin/glossary/route.ts - Audit logging
+- src/app/api/admin/redirects/route.ts - Audit logging
 - src/app/api/search/route.ts - PostgreSQL full-text search with fallback
 - src/app/api/health/route.ts - Enhanced with version, uptime, Redis check
 - next.config.ts - Stricter CSP for API routes
 - src/app/admin/login/page.tsx - CSRF token integration
 - prisma/schema.prisma - Hash password reset tokens, add indexes, add searchVector columns
 - src/lib/validation.ts - Added missing Zod schemas
+- src/lib/db.ts - Added connection pooling params
 
 ## Remaining (Future Phases):
 - [ ] Domain-driven module restructure (src/domains/)
@@ -62,7 +78,9 @@
 - [ ] Event-driven side effects (email, revalidation)
 - [ ] Feature flags system
 - [ ] Integration tests for admin flows
-- [ ] E2E tests for auth flows
+- [ ] E2E tests for auth flows (Playwright)
 - [ ] Load tests for rate limiting
 - [ ] OpenTelemetry integration
 - [ ] React Email templates for emails
+- [ ] Nonce-based CSP for pages
+- [ ] Spam protection on /submit (honeypot)

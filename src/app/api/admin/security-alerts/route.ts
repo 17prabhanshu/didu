@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/session'
+import { createAuditLog } from '@/lib/audit'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(req: Request) {
   try {
@@ -19,7 +21,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireRole(['SUPER_ADMIN', 'EDITOR'])
+    const session = await requireRole(['SUPER_ADMIN', 'EDITOR'])
     const body = await req.json()
     const alert = await db.securityAlert.create({
       data: {
@@ -30,6 +32,16 @@ export async function POST(req: Request) {
         status: body.status || 'ACTIVE',
       }
     })
+
+    await createAuditLog({
+      action: 'CREATE',
+      entityType: 'SecurityAlert',
+      entityId: alert.id,
+      metadata: { title: alert.title, severity: alert.severity, status: alert.status },
+      userId: session.userId,
+    })
+
+    revalidatePath('/', 'layout')
     return NextResponse.json(alert)
   } catch (error: any) {
     return NextResponse.json(

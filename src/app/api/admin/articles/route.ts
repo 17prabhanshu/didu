@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/session";
+import { requireRole, getSession } from "@/lib/session";
+import { createAuditLog } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export async function GET(req: Request) {
   try {
@@ -38,7 +40,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']);
+    const session = await requireRole(['SUPER_ADMIN', 'EDITOR', 'AUTHOR']);
     const body = await req.json();
     const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     
@@ -64,6 +66,17 @@ export async function POST(req: Request) {
         authorId: body.authorId || author.id
       }
     });
+
+    // Audit log
+    await createAuditLog({
+      action: 'CREATE',
+      entityType: 'Article',
+      entityId: article.id,
+      metadata: { title: article.title, status: article.status },
+      userId: session.userId,
+    });
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, data: article });
   } catch (error: any) {
     return NextResponse.json(

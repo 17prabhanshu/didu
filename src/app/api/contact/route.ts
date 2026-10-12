@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from "@/lib/db";
 import { checkRateLimit, rateLimiters, rateLimitHeaders } from '@/lib/rate-limiter';
 import { sendContactFormNotification, sendContactFormAutoReply } from "@/lib/email";
+import { checkIdempotency, storeIdempotencyResponse, getIdempotencyKey } from '@/lib/idempotency';
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
@@ -30,6 +31,17 @@ function slugify(input: string): string {
 
 export async function POST(req: Request) {
   try {
+    // Idempotency check
+    const idempotencyKey = getIdempotencyKey(req);
+    if (idempotencyKey) {
+      const { isDuplicate, cachedResponse } = await checkIdempotency(idempotencyKey);
+      if (isDuplicate && cachedResponse) {
+        return NextResponse.json(cachedResponse, { 
+          headers: { ...rateLimitHeaders({ allowed: true, remaining: 0, resetMs: 0 }), 'X-Idempotency-Replay': 'true' }
+        });
+      }
+    }
+
     // Rate limiting
     const rateLimit = await checkRateLimit(req, rateLimiters.contact);
     
@@ -201,14 +213,21 @@ export async function POST(req: Request) {
       console.warn("Contact email dispatch warning:", e);
     }
 
-    return NextResponse.json({ 
+    const responseData = { 
       success: true, 
       message: autoApproved
         ? "Submission received and auto-approved to the live directory!"
         : "Message sent successfully! We'll get back to you soon.",
       autoApproved,
       id: contactId || 'submitted'
-    }, {
+    };
+
+    // Store idempotency response
+    if (idempotencyKey) {
+      await storeIdempotencyResponse(idempotencyKey, responseData);
+    }
+
+    return NextResponse.json(responseData, {
       headers: rateLimitHeaders(rateLimit)
     });
   } catch (error) {

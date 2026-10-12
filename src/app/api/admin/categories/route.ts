@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/session'
+import { createAuditLog } from '@/lib/audit'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(req: Request) {
   try {
@@ -19,7 +21,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireRole(['SUPER_ADMIN', 'EDITOR'])
+    const session = await requireRole(['SUPER_ADMIN', 'EDITOR'])
     const body = await req.json()
     const category = await db.category.create({
       data: {
@@ -28,6 +30,16 @@ export async function POST(req: Request) {
         description: body.description,
       }
     })
+
+    await createAuditLog({
+      action: 'CREATE',
+      entityType: 'Category',
+      entityId: category.id,
+      metadata: { name: category.name, slug: category.slug },
+      userId: session.userId,
+    })
+
+    revalidatePath('/', 'layout')
     return NextResponse.json(category)
   } catch (error: any) {
     return NextResponse.json(

@@ -7,7 +7,8 @@ function getDatabaseUrl(): string | undefined {
   if (!url) return undefined
   if ((url.startsWith('postgresql://') || url.startsWith('postgres://')) && !url.includes('connect_timeout=')) {
     const separator = url.includes('?') ? '&' : '?'
-    return `${url}${separator}connect_timeout=4&pool_timeout=4`
+    // Add connection pooling params for serverless: limit connections, set timeouts
+    return `${url}${separator}connect_timeout=5&pool_timeout=10&connection_limit=5`
   }
   return url
 }

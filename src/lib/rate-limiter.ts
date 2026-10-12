@@ -88,8 +88,16 @@ export class RateLimiter {
           resetMs,
         };
       } catch (error) {
-        console.warn('Redis rate limit warning (falling back to in-memory store):', error);
+        console.warn('Redis rate limit error:', error);
+        if (process.env.NODE_ENV === 'production' && process.env.REQUIRE_REDIS_IN_PROD === 'true') {
+          return { allowed: false, remaining: 0, resetMs: Date.now() + this.config.windowMs };
+        }
+        // Fall through to in-memory store
       }
+    }
+
+    if (process.env.NODE_ENV === 'production' && process.env.REQUIRE_REDIS_IN_PROD === 'true' && !redis) {
+      return { allowed: false, remaining: 0, resetMs: Date.now() + this.config.windowMs };
     }
 
     // Fallback to in-memory store
