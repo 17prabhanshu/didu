@@ -1,0 +1,48 @@
+# CodeQL Configuration for Agentverse
+# See: https://docs.github.com/en/code-security/codeql-for-github-actions/using-a-custom-configuration-file
+
+name: "Agentverse CodeQL Config"
+
+# Disable default queries and use our own selection
+disable-default-queries: false
+
+# Paths to include in analysis
+paths:
+  - src/
+  - prisma/
+
+# Paths to exclude
+paths-ignore:
+  - node_modules/
+  - .next/
+  - public/
+  - "*.config.*"
+  - "*.d.ts"
+  - "**/__tests__/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+
+# Queries to run (beyond defaults)
+queries:
+  # Security queries
+  - uses: security-extended
+  - uses: security-and-quality
+  
+  # Custom queries for Next.js/TypeScript
+  - uses: ./custom-queries/nextjs-security.ql
+    # This would be a custom query file we could add
+
+# Packs to use
+packs:
+  - codeql/javascript-queries@latest
+  - codeql/typescript-queries@latest
+
+# Alert thresholds
+thresholds:
+  # Fail on high severity
+  - severity: high
+    fail: true
+  - severity: critical
+    fail: true

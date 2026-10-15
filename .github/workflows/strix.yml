@@ -1,0 +1,57 @@
+name: "Strix Security Scan"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * 0'  # Weekly on Sunday 4am
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  strix-scan:
+    name: Strix Penetration Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Strix
+        run: curl -sSL https://strix.ai/install | bash
+
+      - name: Configure Strix
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          echo "STRIX_LLM=${STRIX_LLM}" >> $GITHUB_ENV
+          echo "LLM_API_KEY=${LLM_API_KEY}" >> $GITHUB_ENV
+
+      - name: Run Strix Scan (Quick Mode)
+        run: |
+          source ~/.zshrc
+          strix -n --target . --scan-mode quick --max-turns 200
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+
+      - name: Upload SARIF Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: strix_runs/*/findings.sarif
+          category: strix-pentest

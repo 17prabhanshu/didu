@@ -1,0 +1,180 @@
+{
+  "run_id": "agentverse_55b3",
+  "run_name": "agentverse_55b3",
+  "start_time": "2026-10-13T00:27:44.313996+00:00",
+  "end_time": "2026-10-13T00:28:32.246446+00:00",
+  "status": "failed",
+  "auth_mode": "api_key",
+  "targets_info": [
+    {
+      "type": "local_code",
+      "details": {
+        "target_path": "/Users/prabhanshushekhar/Desktop/DiDi/agentverse",
+        "workspace_subdir": "agentverse"
+      },
+      "original": "/Users/prabhanshushekhar/Desktop/DiDi/agentverse"
+    }
+  ],
+  "llm_usage": {
+    "requests": 4,
+    "input_tokens": 249585,
+    "input_tokens_details": [
+      {
+        "cache_write_tokens": 0,
+        "cached_tokens": 177471
+      }
+    ],
+    "output_tokens": 586,
+    "output_tokens_details": [
+      {
+        "reasoning_tokens": 0
+      }
+    ],
+    "total_tokens": 250171,
+    "request_usage_entries": [
+      {
+        "input_tokens": 61956,
+        "output_tokens": 356,
+        "total_tokens": 62312,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      {
+        "input_tokens": 62329,
+        "output_tokens": 35,
+        "total_tokens": 62364,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 59166
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      {
+        "input_tokens": 62555,
+        "output_tokens": 173,
+        "total_tokens": 62728,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 59157
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      {
+        "input_tokens": 62745,
+        "output_tokens": 22,
+        "total_tokens": 62767,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 59148
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    ],
+    "cost": 0.02842333,
+    "providers": {},
+    "agents": [
+      {
+        "requests": 4,
+        "input_tokens": 249585,
+        "input_tokens_details": [
+          {
+            "cache_write_tokens": 0,
+            "cached_tokens": 177471
+          }
+        ],
+        "output_tokens": 586,
+        "output_tokens_details": [
+          {
+            "reasoning_tokens": 0
+          }
+        ],
+        "total_tokens": 250171,
+        "request_usage_entries": [
+          {
+            "input_tokens": 61956,
+            "output_tokens": 356,
+            "total_tokens": 62312,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          {
+            "input_tokens": 62329,
+            "output_tokens": 35,
+            "total_tokens": 62364,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 59166
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          {
+            "input_tokens": 62555,
+            "output_tokens": 173,
+            "total_tokens": 62728,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 59157
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          {
+            "input_tokens": 62745,
+            "output_tokens": 22,
+            "total_tokens": 62767,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 59148
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          }
+        ],
+        "agent_id": "bab38b47",
+        "agent_name": "Root Agent",
+        "model": "gemini/gemini-3.5-flash-lite",
+        "cost": 0.02842333
+      }
+    ]
+  },
+  "scan_mode": "quick",
+  "instruction": "",
+  "user_instruction": null,
+  "non_interactive": true,
+  "local_sources": [
+    {
+      "source_path": "/Users/prabhanshushekhar/Desktop/DiDi/agentverse",
+      "workspace_subdir": "agentverse",
+      "protect_metadata": true,
+      "read_only": false
+    }
+  ],
+  "workspace_files": [],
+  "workspace_mount": null,
+  "diff_scope": {
+    "active": false,
+    "mode": "auto"
+  },
+  "scope_mode": "auto",
+  "diff_base": null
+}
