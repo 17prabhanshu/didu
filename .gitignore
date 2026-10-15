@@ -63,6 +63,12 @@ CLAUDE.md
 AGENTS.md
 PROJECT_CONTEXT.md
 
+# Strix AI pentesting runs
+strix_runs/
+
+# Ollama
+.ollama/
+
 # Root scripts (moved to scripts/)
 /*.js
 /*.ts
