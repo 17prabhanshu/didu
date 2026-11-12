@@ -3,30 +3,39 @@ import { ImageResponse } from 'next/og';
 export const runtime = 'edge';
 
 async function loadFonts() {
-  const [boldRes, regularRes] = await Promise.all([
-    fetch('https://github.com/google/fonts/raw/main/ofl/syne/Syne-Bold.ttf'),
-    fetch('https://github.com/google/fonts/raw/main/ofl/syne/Syne-Regular.ttf'),
-  ]);
+  try {
+    // Satori supports WOFF but not WOFF2. These are static Fontsource builds;
+    // the Google Fonts repo only ships a variable TTF, which Satori cannot use.
+    const [boldRes, regularRes] = await Promise.all([
+      fetch('https://cdn.jsdelivr.net/npm/@fontsource/syne@5.2.5/files/syne-latin-800-normal.woff'),
+      fetch('https://cdn.jsdelivr.net/npm/@fontsource/syne@5.2.5/files/syne-latin-400-normal.woff'),
+    ]);
 
-  const [boldBuffer, regularBuffer] = await Promise.all([
-    boldRes.arrayBuffer(),
-    regularRes.arrayBuffer(),
-  ]);
+    if (!boldRes.ok || !regularRes.ok) return [];
 
-  return [
-    {
-      name: 'Syne',
-      data: boldBuffer,
-      weight: 800 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'Syne',
-      data: regularBuffer,
-      weight: 400 as const,
-      style: 'normal' as const,
-    },
-  ];
+    const [boldBuffer, regularBuffer] = await Promise.all([
+      boldRes.arrayBuffer(),
+      regularRes.arrayBuffer(),
+    ]);
+
+    return [
+      {
+        name: 'Syne',
+        data: boldBuffer,
+        weight: 800 as const,
+        style: 'normal' as const,
+      },
+      {
+        name: 'Syne',
+        data: regularBuffer,
+        weight: 400 as const,
+        style: 'normal' as const,
+      },
+    ];
+  } catch {
+    // Fall back to the renderer's default font instead of returning an empty image.
+    return [];
+  }
 }
 
 const backgrounds: Record<string, string> = {
@@ -193,7 +202,7 @@ export async function GET(req: Request) {
     {
       width: 1200,
       height: 630,
-      fonts: await loadFonts(),
+      fonts,
     }
   );
 }
