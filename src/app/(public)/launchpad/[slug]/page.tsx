@@ -128,10 +128,6 @@ export default async function LaunchpadToolPage({
     description: `Install and run ${tool.name} from ${tool.provider} on macOS, Linux, or Windows.`,
     totalTime: "PT5M",
     tool: [{ "@type": "HowToTool", name: tool.name }],
-    supply: tool.requires.map((requirement) => ({
-      "@type": "HowToSupply",
-      name: requirement,
-    })),
     step: [
       {
         "@type": "HowToStep",

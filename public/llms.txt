@@ -1,0 +1,37 @@
+# Tecrese
+
+> The intelligence layer for the agentic internet. Tecrese publishes independent guides, comparisons, and directories for AI agents, coding tools, models, MCP servers, and security research.
+
+Tecrese is a free, no-signup resource. Guides are tested against current APIs and updated when tools change. The site is canonical at https://tecrese.com.
+
+## Start here
+
+- [AI Launchpad](https://tecrese.com/launchpad): Copy-paste install, auth, and first-run commands for six AI tools on macOS, Linux, and Windows.
+- [Guides & Tutorials](https://tecrese.com/guides): Step-by-step AI agent, coding tool, and model tutorials.
+- [Editorial & News](https://tecrese.com/news): Analysis of model releases, agent frameworks, and security incidents.
+- [AI Glossary](https://tecrese.com/dictionary): Plain-English definitions for agentic AI terms.
+
+## Tool setup guides
+
+- [Install Codex CLI](https://tecrese.com/launchpad/codex): OpenAI's terminal coding agent.
+- [Install Google Antigravity](https://tecrese.com/launchpad/antigravity): Google's agentic IDE and CLI.
+- [Install Claude Code](https://tecrese.com/launchpad/claude-code): Anthropic's terminal coding agent.
+- [Install GitHub Copilot CLI](https://tecrese.com/launchpad/copilot-cli): Copilot in the terminal.
+- [Install Ollama](https://tecrese.com/launchpad/ollama): Run open models locally.
+- [Gemini API quickstart](https://tecrese.com/launchpad/gemini-api): First call with the Google Gen AI SDK.
+
+## Directories
+
+- [AI Agents](https://tecrese.com/agents): Capabilities, pricing, deployment, and security notes.
+- [AI Tools](https://tecrese.com/tools): Developer tools and coding agents.
+- [AI Models](https://tecrese.com/models): Context windows, pricing, and agent suitability.
+- [Agent Frameworks](https://tecrese.com/frameworks): LangChain, CrewAI, AutoGen, and more.
+- [MCP Servers](https://tecrese.com/mcp-servers): Model Context Protocol servers and security considerations.
+- [Security Intelligence](https://tecrese.com/security): Active agent security alerts and research.
+
+## About
+
+- [About Tecrese](https://tecrese.com/about)
+- [Editorial Policy](https://tecrese.com/about/editorial-policy)
+- [Authors & Analysts](https://tecrese.com/authors)
+- [Contact](https://tecrese.com/contact)

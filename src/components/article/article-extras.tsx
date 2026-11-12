@@ -149,7 +149,7 @@ export function ArticleNewsletter() {
         Weekly briefing
       </p>
       <h2 className="mt-2 font-heading text-2xl font-black tracking-tight">
-        Get the next guide in your inbox
+        Get the next deep dive in your inbox
       </h2>
       <p className="mt-2 max-w-lg text-sm text-muted-foreground">
         One practical AI workflow every week. No spam, unsubscribe anytime.
