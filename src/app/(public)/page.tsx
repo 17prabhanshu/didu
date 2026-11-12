@@ -51,7 +51,7 @@ export default async function HomePage() {
         <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
 
 
-          <h1 className="w-full max-w-full text-[clamp(1.65rem,7.2vw,6rem)] leading-[0.95] font-heading font-black tracking-tighter text-center uppercase mb-6 sm:mb-8 px-1 text-balance">
+          <h1 className="w-full max-w-full text-[clamp(1.4rem,7.2vw,6rem)] leading-[0.95] font-heading font-black tracking-tighter text-center uppercase mb-6 sm:mb-8 px-1 text-balance">
             <span className="block">The Intelligence</span>
             <span className="block text-outline-accent italic">Layer</span>
           </h1>
