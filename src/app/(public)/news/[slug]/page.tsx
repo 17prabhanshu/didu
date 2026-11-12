@@ -39,7 +39,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!article) return { title: 'Article Not Found' };
 
   const isGuide = article.contentType === 'GUIDE' || article.contentType === 'TUTORIAL';
-  const canonical = `${SITE_URL}/${isGuide ? 'guides' : 'news'}/${slug}`;
+
+  // Guides are canonical under /guides. Redirecting during metadata resolution
+  // lets Next issue a real HTTP redirect before the article body streams.
+  if (isGuide) {
+    redirect(`/guides/${slug}`);
+  }
+
+  const canonical = `${SITE_URL}/news/${slug}`;
 
   return {
     title: article.seoTitle || article.title,
