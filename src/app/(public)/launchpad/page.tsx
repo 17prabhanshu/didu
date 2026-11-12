@@ -5,6 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
 export const metadata: Metadata = {
   title: "AI Launchpad | Install GPT, Gemini, Claude & Antigravity",
+  alternates: { canonical: "/launchpad" },
   description:
     "Copy-paste commands to install and run the six AI tools shaping agentic development: OpenAI Codex, Google Antigravity, Claude Code, GitHub Copilot CLI, Ollama, and the Gemini API.",
 };

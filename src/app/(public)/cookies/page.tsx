@@ -1,6 +1,6 @@
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
-export const metadata = { title: 'Cookie Policy' };
+export const metadata = { title: 'Cookie Policy', alternates: { canonical: '/cookies' } };
 
 export default function CookiesPage() {
   return (

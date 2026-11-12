@@ -1,4 +1,7 @@
-export const metadata = { title: "Editorial Policy" };
+export const metadata = {
+  title: "Editorial Policy",
+  alternates: { canonical: "/about/editorial-policy" },
+};
 
 export default function EditorialPolicyPage() {
   return (

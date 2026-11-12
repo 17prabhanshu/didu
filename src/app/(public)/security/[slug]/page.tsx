@@ -8,7 +8,15 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const alert = await db.securityAlert.findUnique({ where: { slug } });
-  return { title: alert ? `Security Alert: ${alert.title}` : 'Alert Not Found' };
+  if (!alert) return { title: 'Alert Not Found' };
+
+  return {
+    title: `Security Alert: ${alert.title}`,
+    description:
+      alert.summary ||
+      `${alert.severity} severity agent security alert affecting ${alert.affectedSystems || 'AI agent systems'}.`,
+    alternates: { canonical: `/security/${slug}` },
+  };
 }
 
 export default async function SecurityAlertPage({ params }: { params: Promise<{ slug: string }> }) {

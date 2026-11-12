@@ -5,7 +5,7 @@ import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Code2 } from "lucide-react";
 
-export const metadata = { title: 'Agent Frameworks' };
+export const metadata = { title: 'Agent Frameworks', alternates: { canonical: '/frameworks' } };
 
 export default async function FrameworksPage() {
   const frameworks = await db.framework.findMany({

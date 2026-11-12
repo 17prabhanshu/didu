@@ -5,7 +5,7 @@ import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Server } from "lucide-react";
 
-export const metadata = { title: 'MCP Servers' };
+export const metadata = { title: 'MCP Servers', alternates: { canonical: '/mcp-servers' } };
 
 export default async function MCPServersPage() {
   const servers = await db.mCPServer.findMany({

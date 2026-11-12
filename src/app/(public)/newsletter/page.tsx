@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/utils";
 
 export const metadata = {
   title: 'Newsletter & Intelligence Briefings',
+  alternates: { canonical: '/newsletter' },
   description: 'Weekly intelligence briefing on autonomous AI agents, developer tooling, and foundational models.',
 };
 

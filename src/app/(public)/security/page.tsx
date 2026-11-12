@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'Security Intelligence' };
+export const metadata = { title: 'Security Intelligence', alternates: { canonical: '/security' } };
 
 export default async function SecurityPage() {
   const alerts = await db.securityAlert.findMany({

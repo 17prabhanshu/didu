@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'Agents Directory' };
+export const metadata = { title: 'Agents Directory', alternates: { canonical: '/agents' } };
 
 export default async function AgentsPage() {
   const agents = await db.agent.findMany({

@@ -5,6 +5,20 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const framework = await db.framework.findUnique({ where: { slug } });
+  if (!framework) return { title: 'Framework Not Found' };
+
+  return {
+    title: `${framework.name} - Agent Framework Overview`,
+    description:
+      framework.description ||
+      `Overview of ${framework.name}: language support, official docs, and repository.`,
+    alternates: { canonical: `/frameworks/${slug}` },
+  };
+}
+
 export default async function FrameworkPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const framework = await db.framework.findUnique({ where: { slug } });

@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'AI Models' };
+export const metadata = { title: 'AI Models', alternates: { canonical: '/models' } };
 
 export default async function ModelsPage() {
   const models = await db.model.findMany({

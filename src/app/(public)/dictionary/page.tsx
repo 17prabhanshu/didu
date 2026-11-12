@@ -7,6 +7,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
 export const metadata = {
   title: 'AI Glossary & Dictionary',
+  alternates: { canonical: '/dictionary' },
   description: 'Comprehensive definitions and explanations of autonomous AI agents, tool calling, model context protocol, and cognitive architectures.',
 };
 

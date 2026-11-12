@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'Tools Directory' };
+export const metadata = { title: 'Tools Directory', alternates: { canonical: '/tools' } };
 
 export default async function ToolsPage() {
   const tools = await db.tool.findMany({

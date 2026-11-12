@@ -7,6 +7,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
 export const metadata = {
   title: 'Authors & Analysts',
+  alternates: { canonical: '/authors' },
   description: 'Meet the researchers, benchmark analysts, and engineers contributing to the Tecrese intelligence index.',
 };
 

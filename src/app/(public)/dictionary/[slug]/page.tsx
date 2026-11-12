@@ -14,6 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${term.term} - AI Glossary Definition`,
     description: term.simpleExplanation || term.definition || `Learn what ${term.term} means in autonomous AI agents and architectures.`,
+    alternates: { canonical: `/dictionary/${slug}` },
   };
 }
 

@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/Logo";
 
 export const metadata = {
   title: 'About',
+  alternates: { canonical: '/about' },
   description: 'Tecrese is the premier directory, benchmarking index, and intelligence layer for autonomous AI agents, developer tooling, and foundational models.',
 };
 

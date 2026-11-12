@@ -12,6 +12,7 @@ import { NewsletterForm } from '@/components/newsletter/newsletter-form';
 
 export const metadata = {
   title: { absolute: 'Tecrese - The Intelligence Layer for the Agentic Internet' },
+  alternates: { canonical: '/' },
   description: 'Discover, compare, and integrate the best AI agents, tools, models, and MCP servers. Free guides, launchpad setup, and independent reviews.',
 };
 

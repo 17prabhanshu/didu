@@ -1,6 +1,6 @@
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
-export const metadata = { title: 'Privacy Policy' };
+export const metadata = { title: 'Privacy Policy', alternates: { canonical: '/privacy' } };
 
 export default function PrivacyPolicyPage() {
   return (

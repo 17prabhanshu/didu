@@ -5,7 +5,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 
-export const metadata = { title: 'Guides & Tutorials' };
+export const metadata = { title: 'Guides & Tutorials', alternates: { canonical: '/guides' } };
 
 const FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800&auto=format&fit=crop",

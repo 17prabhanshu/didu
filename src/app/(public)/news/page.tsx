@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 
-export const metadata = { title: 'Editorial & News' };
+export const metadata = { title: 'Editorial & News', alternates: { canonical: '/news' } };
 
 export default async function NewsPage() {
   const articles = await db.article.findMany({

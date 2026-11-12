@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${author.name} - Profile & Articles`,
     description: author.bio || `Explore articles and research published by ${author.name} on Tecrese.`,
+    alternates: { canonical: `/authors/${slug}` },
   };
 }
 

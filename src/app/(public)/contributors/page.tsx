@@ -5,7 +5,7 @@ import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Users } from "lucide-react";
 
-export const metadata = { title: 'Contributors' };
+export const metadata = { title: 'Contributors', alternates: { canonical: '/contributors' } };
 
 export default async function ContributorsPage() {
   const contributors = await db.contributorProfile.findMany({
