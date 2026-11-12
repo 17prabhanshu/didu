@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Providers } from "@/components/providers";
 import { PixelCat } from "@/components/animations/pixel-cat";
 import CookieConsent from "@/components/cookie-consent/CookieConsent";
+import { ConsentAnalytics } from "@/components/analytics/consent-analytics";
 import { OrganizationJSONLD, WebsiteJSONLD } from "@/components/seo/JSONLD";
 
 const syne = localFont({
@@ -123,7 +124,7 @@ export default function RootLayout({
         </ThemeProvider>
         {/* Vercel Web Analytics: cookieless, same-origin script. Enable it in
             the Vercel project dashboard for data to appear. */}
-        <script defer src="/_vercel/insights/script.js" />
+        <ConsentAnalytics />
       </body>
     </html>
   );

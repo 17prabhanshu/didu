@@ -64,6 +64,7 @@ export default function CookieConsent() {
 
     setPreferences(updated);
     localStorage.setItem(CONSENT_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('tecrese-consent-change'));
 
     if (!updated.analytics) {
       clearCookies(['_ga', '_gid', '_gat']);
