@@ -25,7 +25,12 @@ export default async function HomePage() {
 
   try {
     agents = await db.agent.findMany({ where: { status: 'PUBLISHED' }, take: 4 });
-    articles = await db.article.findMany({ where: { status: 'PUBLISHED' }, take: 4 });
+    articles = await db.article.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: { publishedAt: 'desc' },
+      take: 4,
+      include: { author: true, category: true },
+    });
     tools = await db.tool.findMany({ where: { status: 'PUBLISHED' }, take: 8 });
     models = await db.model.findMany({ where: { status: 'PUBLISHED' }, take: 4 });
     securityAlerts = await db.securityAlert.findMany({ where: { status: 'ACTIVE' }, take: 2 });
