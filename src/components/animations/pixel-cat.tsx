@@ -128,7 +128,7 @@ export function PixelCat() {
   const eyeOffset = action === 'look-left' ? -1 : action === 'look-right' ? 1 : 0;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[9998] overflow-visible">
+    <div className="pointer-events-none fixed inset-0 z-40 hidden overflow-visible md:block">
       <style>{`
         @keyframes cat-breathe {
           0%, 100% { transform: scaleY(1) translateY(0); }

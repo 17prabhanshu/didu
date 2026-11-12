@@ -14,6 +14,16 @@ const nextConfig: NextConfig = {
   devIndicators: {
     position: 'bottom-right'
   },
+  async redirects() {
+    return [
+      // The editorial author slug was renamed when the brand moved to Tecrese.
+      {
+        source: '/authors/agentverse-editorial',
+        destination: '/authors/tecrese-editorial',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     const isDev = process.env.NODE_ENV !== 'production';
 
