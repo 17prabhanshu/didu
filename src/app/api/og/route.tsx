@@ -2,41 +2,8 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-async function loadFonts() {
-  try {
-    // Satori supports WOFF but not WOFF2. These are static Fontsource builds;
-    // the Google Fonts repo only ships a variable TTF, which Satori cannot use.
-    const [boldRes, regularRes] = await Promise.all([
-      fetch('https://cdn.jsdelivr.net/npm/@fontsource/syne@5.2.5/files/syne-latin-800-normal.woff'),
-      fetch('https://cdn.jsdelivr.net/npm/@fontsource/syne@5.2.5/files/syne-latin-400-normal.woff'),
-    ]);
-
-    if (!boldRes.ok || !regularRes.ok) return [];
-
-    const [boldBuffer, regularBuffer] = await Promise.all([
-      boldRes.arrayBuffer(),
-      regularRes.arrayBuffer(),
-    ]);
-
-    return [
-      {
-        name: 'Syne',
-        data: boldBuffer,
-        weight: 800 as const,
-        style: 'normal' as const,
-      },
-      {
-        name: 'Syne',
-        data: regularBuffer,
-        weight: 400 as const,
-        style: 'normal' as const,
-      },
-    ];
-  } catch {
-    // Fall back to the renderer's default font instead of returning an empty image.
-    return [];
-  }
-}
+// Use the font bundled with next/og. Fetching a webfont at request time added
+// 30+ seconds of latency, which made social crawlers time out on the image.
 
 const backgrounds: Record<string, string> = {
   default: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #0c4a6e 100%)',
@@ -57,7 +24,6 @@ export async function GET(req: Request) {
   const image = searchParams.get('image');
 
   const bg = backgrounds[type] || backgrounds.default;
-  const fonts = await loadFonts();
 
   return new ImageResponse(
     (
@@ -71,7 +37,6 @@ export async function GET(req: Request) {
           alignItems: 'center',
           background: bg,
           padding: 80,
-          fontFamily: 'Syne',
         }}
       >
         <div
@@ -202,7 +167,10 @@ export async function GET(req: Request) {
     {
       width: 1200,
       height: 630,
-      fonts,
+      headers: {
+        // Social crawlers request these once; cache aggressively at the edge.
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+      },
     }
   );
 }
