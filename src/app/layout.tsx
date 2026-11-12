@@ -113,6 +113,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${syne.variable} ${jakarta.variable} ${jetbrainsMono.variable} font-sans antialiased min-h-screen flex flex-col`}>
+        {/* ScrollReveal starts at opacity 0 for the entrance animation. If JS
+            never runs, force the final state so content is still readable. */}
+        <noscript>
+          <style>{`[data-scroll-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
         <OrganizationJSONLD />
         <WebsiteJSONLD />
         <ThemeProvider defaultTheme="system" storageKey="agentverse-theme">

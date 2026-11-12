@@ -27,6 +27,7 @@ export function ScrollReveal({
   return (
     <motion.div
       ref={ref}
+      data-scroll-reveal
       initial={initialValues[direction]}
       animate={isInView ? { x: 0, y: 0, opacity: 1 } : initialValues[direction]}
       transition={{
