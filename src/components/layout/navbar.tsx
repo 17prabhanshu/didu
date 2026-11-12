@@ -64,7 +64,7 @@ export function Navbar() {
         <div className="container mx-auto px-4 h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
             <Logo variant="default" size="sm" />
-            <span className="font-heading font-extrabold text-xl tracking-tight hidden sm:block bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-primary">
+            <span className="font-heading text-lg font-extrabold tracking-tight sm:text-xl bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-primary">
               Tecrese
             </span>
           </Link>
