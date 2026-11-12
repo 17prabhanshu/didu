@@ -64,6 +64,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: article.seoDescription || article.excerpt || undefined,
       url: canonical,
       type: 'article',
+      images: [
+        {
+          url: newsOgImage(article.title, article.featuredImage),
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.seoTitle || article.title,
+      description: article.seoDescription || article.excerpt || undefined,
       images: [newsOgImage(article.title, article.featuredImage)],
     },
   };
