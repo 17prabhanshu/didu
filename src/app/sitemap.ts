@@ -6,8 +6,9 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
-    '', '/agents', '/tools', '/models', '/guides', '/dictionary', 
-    '/news', '/security', '/about', '/privacy', '/terms', '/contact'
+    '', '/agents', '/tools', '/models', '/guides', '/dictionary',
+    '/news', '/security', '/frameworks', '/mcp-servers', '/build',
+    '/launchpad', '/about', '/privacy', '/terms', '/contact'
   ]
 
   const sitemapEntries: MetadataRoute.Sitemap = staticPages.map((route) => ({
@@ -71,6 +72,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const folder = ['GUIDE', 'TUTORIAL'].includes(item.contentType) ? 'guides' : 'news'
       sitemapEntries.push({
         url: `${SITE_URL}/${folder}/${item.slug}`,
+        lastModified: item.updatedAt,
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      })
+    })
+  } catch (error) {}
+
+  try {
+    const frameworks = await db.framework.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { slug: true, updatedAt: true }
+    })
+    frameworks.forEach((item: any) => {
+      sitemapEntries.push({
+        url: `${SITE_URL}/frameworks/${item.slug}`,
+        lastModified: item.updatedAt,
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      })
+    })
+  } catch (error) {}
+
+  try {
+    const mcpServers = await db.mCPServer.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { slug: true, updatedAt: true }
+    })
+    mcpServers.forEach((item: any) => {
+      sitemapEntries.push({
+        url: `${SITE_URL}/mcp-servers/${item.slug}`,
         lastModified: item.updatedAt,
         changeFrequency: 'weekly',
         priority: 0.7,
