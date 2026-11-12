@@ -1,7 +1,7 @@
 "use client";
 
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
-import { ReactLenis } from "@studio-freight/react-lenis";
+import { ReactLenis } from "lenis/react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

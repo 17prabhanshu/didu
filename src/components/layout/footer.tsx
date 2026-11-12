@@ -65,6 +65,7 @@ export function Footer() {
             <h3 className="font-semibold text-foreground mb-4">Resources</h3>
             <ul className="space-y-3">
               {[
+                { name: "Launchpad", href: "/launchpad" },
                 { name: "Guides", href: "/guides" },
                 { name: "Security", href: "/security" },
                 { name: "News", href: "/news" },

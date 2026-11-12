@@ -10,7 +10,10 @@ export const metadata = { title: 'Editorial & News | Agentverse' };
 
 export default async function NewsPage() {
   const articles = await db.article.findMany({
-    where: { status: 'PUBLISHED' },
+    where: {
+      status: 'PUBLISHED',
+      contentType: { notIn: ['GUIDE', 'TUTORIAL'] },
+    },
     include: { author: true, category: true },
     orderBy: { publishedAt: 'desc' }
   });

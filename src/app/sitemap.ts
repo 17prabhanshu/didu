@@ -68,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true, contentType: true, updatedAt: true }
     })
     articles.forEach((item: any) => {
-      const folder = item.contentType === 'GUIDE' ? 'guides' : 'news'
+      const folder = ['GUIDE', 'TUTORIAL'].includes(item.contentType) ? 'guides' : 'news'
       sitemapEntries.push({
         url: `${SITE_URL}/${folder}/${item.slug}`,
         lastModified: item.updatedAt,

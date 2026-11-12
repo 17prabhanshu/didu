@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { name: "Tools", href: "/tools" },
   { name: "Models", href: "/models" },
   { name: "Build", href: "/build" },
+  { name: "Launchpad", href: "/launchpad" },
   { name: "Security", href: "/security" },
   { name: "Guides", href: "/guides" },
   { name: "News", href: "/news" },

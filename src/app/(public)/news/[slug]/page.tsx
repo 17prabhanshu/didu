@@ -2,11 +2,46 @@ export const dynamic = 'force-dynamic';
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
+import { ArticleBody } from "@/components/article/article-body";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 // Using dynamicParams = true (default) allows on-demand rendering of paths not in generateStaticParams
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = await db.article.findUnique({
+    where: { slug },
+    select: {
+      title: true,
+      excerpt: true,
+      subtitle: true,
+      seoTitle: true,
+      seoDescription: true,
+      contentType: true,
+    },
+  });
+
+  if (!article) return { title: 'Article Not Found | Tecrese' };
+
+  const isGuide = article.contentType === 'GUIDE' || article.contentType === 'TUTORIAL';
+  const canonical = `${SITE_URL}/${isGuide ? 'guides' : 'news'}/${slug}`;
+
+  return {
+    title: article.seoTitle || `${article.title} | Tecrese`,
+    description: article.seoDescription || article.excerpt || article.subtitle || undefined,
+    alternates: { canonical },
+    openGraph: {
+      title: article.seoTitle || article.title,
+      description: article.seoDescription || article.excerpt || undefined,
+      url: canonical,
+      type: 'article',
+    },
+  };
+}
 
 export default async function ArticleReadingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -77,22 +112,7 @@ export default async function ArticleReadingPage({ params }: { params: Promise<{
       {/* Article Body */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl mt-16">
         <ScrollReveal delay={article.featuredImage ? 0 : 0.2}>
-          <div className="prose prose-lg dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary hover:prose-a:text-accent prose-img:rounded-3xl max-w-none">
-            {/* Simple split by double newline for structural rendering without a full markdown parser dependency */}
-            {article.body.split('\n\n').map((paragraph, i) => {
-              if (paragraph.startsWith('# ')) return <h1 key={i} className="text-4xl mt-12 mb-6">{paragraph.replace('# ', '')}</h1>;
-              if (paragraph.startsWith('## ')) return <h2 key={i} className="text-3xl mt-10 mb-5">{paragraph.replace('## ', '')}</h2>;
-              if (paragraph.startsWith('### ')) return <h3 key={i} className="text-2xl mt-8 mb-4">{paragraph.replace('### ', '')}</h3>;
-              if (paragraph.startsWith('- ')) {
-                return (
-                  <ul key={i} className="list-disc pl-6 mb-6">
-                    {paragraph.split('\n').map((item, j) => <li key={j}>{item.replace('- ', '')}</li>)}
-                  </ul>
-                );
-              }
-              return <p key={i} className="mb-6 text-foreground/80 leading-relaxed text-lg">{paragraph}</p>;
-            })}
-          </div>
+          <ArticleBody body={article.body} />
         </ScrollReveal>
 
         {/* E-E-A-T Editorial Trust Signals */}

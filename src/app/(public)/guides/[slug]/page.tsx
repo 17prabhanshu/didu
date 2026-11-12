@@ -7,15 +7,27 @@ import { ArrowLeft, BookOpen, Clock, Calendar, CheckCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
+import { ArticleBody } from "@/components/article/article-body";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const guide = await db.article.findUnique({ where: { slug } });
-  if (!guide) return { title: 'Guide Not Found | Tecrese' };
+  if (!guide || !['GUIDE', 'TUTORIAL'].includes(guide.contentType)) {
+    return { title: 'Guide Not Found | Tecrese' };
+  }
 
   return {
-    title: `${guide.title} - Step-by-Step AI Guide | Tecrese`,
-    description: guide.excerpt || guide.subtitle || `Comprehensive step-by-step tutorial: ${guide.title}`,
+    title: guide.seoTitle || `${guide.title} - Step-by-Step AI Guide | Tecrese`,
+    description: guide.seoDescription || guide.excerpt || guide.subtitle || `Comprehensive step-by-step tutorial: ${guide.title}`,
+    alternates: { canonical: `${SITE_URL}/guides/${slug}` },
+    openGraph: {
+      title: guide.seoTitle || guide.title,
+      description: guide.seoDescription || guide.excerpt || undefined,
+      url: `${SITE_URL}/guides/${slug}`,
+      type: 'article',
+    },
   };
 }
 
@@ -27,7 +39,7 @@ export default async function GuideDetailPage({ params }: { params: Promise<{ sl
     include: { author: true, category: true },
   });
 
-  if (!guide) return notFound();
+  if (!guide || !['GUIDE', 'TUTORIAL'].includes(guide.contentType)) return notFound();
 
   return (
     <article className="relative min-h-screen pb-24 overflow-hidden">
@@ -87,21 +99,7 @@ export default async function GuideDetailPage({ params }: { params: Promise<{ sl
       {/* Guide Content Body */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl mt-12">
         <ScrollReveal>
-          <div className="prose prose-lg dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-primary hover:prose-a:text-accent prose-img:rounded-3xl max-w-none">
-            {guide.body.split('\n\n').map((paragraph, i) => {
-              if (paragraph.startsWith('# ')) return <h1 key={i} className="text-3xl font-heading mt-10 mb-5">{paragraph.replace('# ', '')}</h1>;
-              if (paragraph.startsWith('## ')) return <h2 key={i} className="text-2xl font-heading mt-8 mb-4">{paragraph.replace('## ', '')}</h2>;
-              if (paragraph.startsWith('### ')) return <h3 key={i} className="text-xl font-heading mt-6 mb-3">{paragraph.replace('### ', '')}</h3>;
-              if (paragraph.startsWith('- ')) {
-                return (
-                  <ul key={i} className="list-disc pl-6 mb-6 space-y-1">
-                    {paragraph.split('\n').map((item, j) => <li key={j}>{item.replace('- ', '')}</li>)}
-                  </ul>
-                );
-              }
-              return <p key={i} className="mb-6 text-foreground/85 leading-relaxed">{paragraph}</p>;
-            })}
-          </div>
+          <ArticleBody body={guide.body} />
 
           <div className="mt-16 p-8 bg-muted/30 border border-border rounded-3xl flex items-center gap-4">
             <CheckCircle className="w-8 h-8 text-green-500 shrink-0" />

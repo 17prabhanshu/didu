@@ -63,6 +63,9 @@ export default async function HomePage() {
             <Link href="/news" className="group px-10 py-5 bg-transparent border border-foreground/20 hover:border-foreground text-foreground rounded-full font-bold uppercase tracking-wider transition-all">
               Read Latest <span className="inline-block group-hover:translate-x-2 transition-transform">&rarr;</span>
             </Link>
+            <Link href="/launchpad" className="group px-10 py-5 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-wider transition-all hover:opacity-90">
+              AI Launchpad <span className="inline-block group-hover:translate-x-2 transition-transform">&rarr;</span>
+            </Link>
           </ScrollReveal>
         </div>
       </section>
