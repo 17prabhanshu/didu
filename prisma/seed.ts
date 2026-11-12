@@ -33,12 +33,16 @@ async function main() {
 
   // 2. Author
   const author = await prisma.author.upsert({
-    where: { slug: 'agentverse-editorial' },
-    update: {},
+    where: { slug: 'tecrese-editorial' },
+    update: {
+      name: 'Tecrese Editorial',
+      bio: 'The Tecrese editorial team covers AI agents, developer tools, models, and the agentic ecosystem. Every guide is tested against current APIs before publication.',
+    },
     create: {
-      name: 'Agentverse Editorial',
-      slug: 'agentverse-editorial',
-      bio: 'The Agentverse editorial team covers the latest in AI agents, tools, and the agentic ecosystem.',
+      name: 'Tecrese Editorial',
+      slug: 'tecrese-editorial',
+      bio: 'The Tecrese editorial team covers AI agents, developer tools, models, and the agentic ecosystem. Every guide is tested against current APIs before publication.',
+      expertise: 'AI agents, developer tooling, and model evaluation',
       userId: adminUser.id,
     },
   })
