@@ -13,7 +13,7 @@ export async function GET() {
 
     const rssItems = articles
       .map((article) => {
-        const folder = article.contentType === 'GUIDE' ? 'guides' : 'news'
+        const folder = ['GUIDE', 'TUTORIAL'].includes(article.contentType) ? 'guides' : 'news'
         const url = `${SITE_URL}/${folder}/${article.slug}`
         const date = article.publishedAt 
           ? new Date(article.publishedAt).toUTCString()

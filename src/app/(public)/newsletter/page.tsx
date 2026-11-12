@@ -121,7 +121,7 @@ export default async function NewsletterPage({
               {recentBriefings.map((article: any) => (
                 <Link
                   key={article.id}
-                  href={`/news/${article.slug}`}
+                  href={`/${article.contentType === 'GUIDE' || article.contentType === 'TUTORIAL' ? 'guides' : 'news'}/${article.slug}`}
                   className="group bg-card/60 hover:bg-card border border-border/60 hover:border-primary/50 p-6 rounded-3xl transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
                 >
                   <div>

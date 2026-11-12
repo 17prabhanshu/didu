@@ -86,7 +86,7 @@ export async function GET(req: Request) {
         id: `article-${a.id}`,
         title: a.title,
         type: a.contentType?.toLowerCase() || 'article',
-        url: `/${a.contentType?.toLowerCase() === 'news' ? 'news' : 'guides'}/${a.slug}`,
+        url: `/${a.contentType === 'GUIDE' || a.contentType === 'TUTORIAL' ? 'guides' : 'news'}/${a.slug}`,
         description: (a.excerpt?.substring(0, 80) || '') + '...',
       })),
       ...(agents || []).map((a: any) => ({
