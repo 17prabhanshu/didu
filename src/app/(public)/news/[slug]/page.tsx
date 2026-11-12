@@ -21,6 +21,13 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop';
 
+function newsOgImage(title: string, featured?: string | null) {
+  return (
+    featured ||
+    `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&type=news`
+  );
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const article = await db.article.findUnique({
@@ -57,7 +64,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: article.seoDescription || article.excerpt || undefined,
       url: canonical,
       type: 'article',
-      images: article.featuredImage ? [article.featuredImage] : undefined,
+      images: [newsOgImage(article.title, article.featuredImage)],
     },
   };
 }
@@ -105,7 +112,7 @@ export default async function ArticleReadingPage({ params }: { params: Promise<{
         title={article.title}
         description={description}
         url={articleUrl}
-        image={article.featuredImage || FALLBACK_IMAGE}
+        image={newsOgImage(article.title, article.featuredImage)}
         datePublished={publishedAt.toISOString()}
         dateModified={updatedAt.toISOString()}
         author={{

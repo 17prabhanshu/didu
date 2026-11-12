@@ -21,6 +21,13 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
 
+function guideOgImage(title: string, featured?: string | null) {
+  return (
+    featured ||
+    `${SITE_URL}/api/og?title=${encodeURIComponent(title)}&type=guide`
+  );
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const guide = await db.article.findUnique({ where: { slug } });
@@ -37,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: guide.seoDescription || guide.excerpt || undefined,
       url: `${SITE_URL}/guides/${slug}`,
       type: 'article',
-      images: guide.featuredImage ? [guide.featuredImage] : undefined,
+      images: [guideOgImage(guide.title, guide.featuredImage)],
     },
   };
 }
@@ -83,7 +90,7 @@ export default async function GuideDetailPage({ params }: { params: Promise<{ sl
         title={guide.title}
         description={description}
         url={articleUrl}
-        image={guide.featuredImage || `${SITE_URL}/api/og?type=default`}
+        image={guideOgImage(guide.title, guide.featuredImage)}
         datePublished={publishedAt.toISOString()}
         dateModified={updatedAt.toISOString()}
         author={{
