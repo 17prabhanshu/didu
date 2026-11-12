@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Loader2, CheckCircle2, AlertCircle, Send } from "lucide-react";
 
 interface NewsletterFormProps {
@@ -9,6 +9,7 @@ interface NewsletterFormProps {
 }
 
 export function NewsletterForm({ variant = "footer", className = "" }: NewsletterFormProps) {
+  const inputId = useId();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -113,10 +114,10 @@ export function NewsletterForm({ variant = "footer", className = "" }: Newslette
   return (
     <div className={`space-y-2 ${className}`}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <label htmlFor="newsletter-email-input" className="sr-only">Email address</label>
+        <label htmlFor={inputId} className="sr-only">Email address</label>
         <div className="flex gap-2">
           <input
-            id="newsletter-email-input"
+            id={inputId}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

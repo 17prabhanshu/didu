@@ -6,8 +6,9 @@ import { Search, Bot, Wrench, Cpu, FileText, ArrowRight, Filter, Sparkles } from
 import { Badge } from "@/components/ui/badge";
 
 export const metadata = {
-  title: 'Search Directory & Intelligence | Tecrese',
+  title: 'Search Directory & Intelligence',
   description: 'Search autonomous AI agents, developer tools, foundational models, and editorial articles.',
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({

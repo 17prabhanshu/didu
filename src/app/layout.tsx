@@ -91,7 +91,7 @@ export const metadata: Metadata = {
       { url: "/images/brand/favicon-16.png", type: "image/png", sizes: "16x16" },
     ],
     apple: [
-      { url: "/images/brand/apple-touch-icon.svg", type: "image/svg+xml", sizes: "180x180" },
+      { url: "/images/brand/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
     ],
     shortcut: "/favicon.ico",
     other: [
@@ -102,9 +102,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/manifest.webmanifest",
-  verification: {
-    google: "google-site-verification-code",
-  },
 };
 
 export default function RootLayout({
@@ -124,6 +121,9 @@ export default function RootLayout({
             <CookieConsent />
           </Providers>
         </ThemeProvider>
+        {/* Vercel Web Analytics: cookieless, same-origin script. Enable it in
+            the Vercel project dashboard for data to appear. */}
+        <script defer src="/_vercel/insights/script.js" />
       </body>
     </html>
   );

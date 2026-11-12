@@ -11,27 +11,33 @@ export function JSONLD({ data, id }: { data: object; id?: string }) {
 export function OrganizationJSONLD() {
   const data = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': ['Organization', 'NewsMediaOrganization'],
+    '@id': 'https://tecrese.com/#organization',
     name: 'Tecrese',
     alternateName: 'Tecrese - The Intelligence Layer for the Agentic Internet',
     url: 'https://tecrese.com',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://tecrese.com/images/brand/logo.svg',
-      width: 128,
-      height: 128,
+      url: 'https://tecrese.com/images/brand/logo.png',
+      width: 512,
+      height: 512,
     },
     description: 'The intelligence layer for the agentic internet. Discover, compare, and integrate AI agents, tools, and models.',
     foundingDate: '2024',
     sameAs: [
       'https://twitter.com/tecrese',
       'https://linkedin.com/company/tecrese',
-      'https://github.com/tecrese',
+      'https://github.com/17prabhanshu/didu',
     ],
+    masthead: 'https://tecrese.com/authors',
+    ethicsPolicy: 'https://tecrese.com/about/editorial-policy',
+    publishingPrinciples: 'https://tecrese.com/about/editorial-policy',
+    unnamedSourcesPolicy: 'https://tecrese.com/about/editorial-policy',
+    actionableFeedbackPolicy: 'https://tecrese.com/contact',
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+1-000-000-0000',
-      contactType: 'customer service',
+      contactType: 'customer support',
+      url: 'https://tecrese.com/contact',
       availableLanguage: ['English'],
       areaServed: 'World',
     },
@@ -64,24 +70,14 @@ export function WebsiteJSONLD() {
       'query-input': 'required name=search_term_string',
     },
     publisher: {
-      '@type': 'Organization',
-      name: 'Tecrese',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://tecrese.com/images/brand/logo.svg',
-      },
-      sameAs: [
-        'https://twitter.com/tecrese',
-        'https://linkedin.com/company/tecrese',
-        'https://github.com/tecrese',
-      ],
+      '@id': 'https://tecrese.com/#organization',
     },
   };
 
   return <JSONLD data={data} id="website-schema" />;
 }
 
-export function BreadcrumbJSONLD(items: Array<{ name: string; url: string }>) {
+export function BreadcrumbJSONLD({ items }: { items: Array<{ name: string; url: string }> }) {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -97,6 +93,7 @@ export function BreadcrumbJSONLD(items: Array<{ name: string; url: string }>) {
 }
 
 export function ArticleJSONLD(article: {
+  type?: 'Article' | 'TechArticle' | 'NewsArticle';
   title: string;
   description: string;
   url: string;
@@ -107,16 +104,19 @@ export function ArticleJSONLD(article: {
   category?: string;
   tags?: string[];
   readingTime?: number;
+  proficiencyLevel?: string;
 }) {
   const data = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': article.type || 'Article',
     headline: article.title,
     description: article.description,
     image: article.image,
     url: article.url,
     datePublished: article.datePublished,
     dateModified: article.dateModified,
+    inLanguage: 'en-US',
+    isAccessibleForFree: true,
     author: {
       '@type': 'Person',
       name: article.author.name,
@@ -125,9 +125,12 @@ export function ArticleJSONLD(article: {
     publisher: {
       '@type': 'Organization',
       name: 'Tecrese',
+      url: 'https://tecrese.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://tecrese.com/images/brand/logo.svg',
+        url: 'https://tecrese.com/images/brand/logo.png',
+        width: 512,
+        height: 512,
       },
     },
     mainEntityOfPage: {
@@ -137,12 +140,13 @@ export function ArticleJSONLD(article: {
     articleSection: article.category,
     keywords: article.tags?.join(', '),
     timeRequired: article.readingTime ? `PT${article.readingTime}M` : undefined,
+    proficiencyLevel: article.proficiencyLevel,
   };
 
   return <JSONLD data={data} id="article-schema" />;
 }
 
-export function FAQJSONLD(faqs: Array<{ question: string; answer: string }>) {
+export function FAQJSONLD({ faqs }: { faqs: Array<{ question: string; answer: string }> }) {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

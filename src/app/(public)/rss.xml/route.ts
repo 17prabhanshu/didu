@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'
 
 export async function GET() {
   try {
@@ -33,9 +33,9 @@ export async function GET() {
     const rssFeed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Agentverse Updates</title>
+    <title>Tecrese Updates</title>
     <link>${SITE_URL}</link>
-    <description>Latest news, guides, and updates from Agentverse.</description>
+    <description>Latest news, guides, and updates from Tecrese.</description>
     <language>en-us</language>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
     ${rssItems}

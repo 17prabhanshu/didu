@@ -1,4 +1,4 @@
-export const metadata = { title: "Editorial Policy | Agentverse" };
+export const metadata = { title: "Editorial Policy" };
 
 export default function EditorialPolicyPage() {
   return (
@@ -7,12 +7,12 @@ export default function EditorialPolicyPage() {
       
       <div className="prose prose-lg dark:prose-invert">
         <p className="lead text-xl text-muted-foreground mb-8">
-          Agentverse maintains a strict, independent editorial desk. Our mission is to provide uncompromised intelligence on AI agents and frameworks.
+          Tecrese maintains a strict, independent editorial desk. Our mission is to provide uncompromised intelligence on AI agents and frameworks.
         </p>
 
         <h2 className="text-2xl font-bold mt-12 mb-4">1. No Unsolicited Guest Posts</h2>
         <p className="mb-6">
-          To maintain the highest caliber of research, <strong>we do not accept unsolicited guest posts, paid insertions, or sponsored &ldquo;dofollow&rdquo; link placements</strong>. All content published on Agentverse is rigorously reviewed by our internal Industry Analysts and intelligence team.
+          To maintain the highest caliber of research, <strong>we do not accept unsolicited guest posts, paid insertions, or sponsored &ldquo;dofollow&rdquo; link placements</strong>. All content published on Tecrese is rigorously reviewed by our internal Industry Analysts and intelligence team.
         </p>
 
         <h2 className="text-2xl font-bold mt-12 mb-4">2. Editorial Independence</h2>

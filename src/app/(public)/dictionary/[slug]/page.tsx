@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -9,10 +9,10 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const term = await db.glossaryTerm.findUnique({ where: { slug } });
-  if (!term) return { title: 'Term Not Found | Tecrese' };
+  if (!term) return { title: 'Term Not Found' };
 
   return {
-    title: `${term.term} - Definition & Technical Explanation | Tecrese Glossary`,
+    title: `${term.term} - AI Glossary Definition`,
     description: term.simpleExplanation || term.definition || `Learn what ${term.term} means in autonomous AI agents and architectures.`,
   };
 }

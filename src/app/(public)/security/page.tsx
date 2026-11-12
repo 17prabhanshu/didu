@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { TiltCard } from "@/components/animations/tilt-card";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'Security Intelligence | Agentverse' };
+export const metadata = { title: 'Security Intelligence' };
 
 export default async function SecurityPage() {
   const alerts = await db.securityAlert.findMany({

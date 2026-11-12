@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
@@ -8,7 +8,7 @@ import { ArrowLeft, ExternalLink, Database } from "lucide-react";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const model = await db.model.findUnique({ where: { slug } });
-  return { title: model ? `${model.name} | Agentverse` : 'Model Not Found' };
+  return { title: model ? `${model.name} - AI Model Specs & Pricing` : 'Model Not Found' };
 }
 
 export default async function ModelPage({ params }: { params: Promise<{ slug: string }> }) {

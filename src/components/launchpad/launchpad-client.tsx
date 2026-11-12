@@ -201,6 +201,12 @@ function ToolCard({
 
         <p className="mb-2 font-medium">{tool.tagline}</p>
         <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{tool.description}</p>
+        <Link
+          href={`/launchpad/${tool.id}`}
+          className="mb-5 inline-flex w-fit items-center gap-1.5 text-sm font-bold text-primary hover:underline"
+        >
+          Full setup guide <ArrowRight className="h-4 w-4" />
+        </Link>
 
         <div className="mb-5 flex flex-wrap gap-2">
           {tool.requires.map((requirement) => (

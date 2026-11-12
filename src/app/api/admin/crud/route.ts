@@ -146,7 +146,7 @@ export async function POST(req: Request) {
         const fallbackAuthor =
           (await (db as any).author.findFirst()) ||
           (await (db as any).author.create({
-            data: { name: "Intelligence Desk", slug: "intelligence-desk", bio: "Agentverse internal research team." },
+            data: { name: "Intelligence Desk", slug: "intelligence-desk", bio: "Tecrese internal research team." },
           }));
         sanitizedData.authorId = fallbackAuthor.id;
       }

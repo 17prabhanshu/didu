@@ -1,5 +1,16 @@
+import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { headingId } from "@/lib/toc";
+
+function nodeText(node: React.ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (React.isValidElement(node)) {
+    return nodeText((node.props as { children?: React.ReactNode }).children);
+  }
+  return "";
+}
 
 /**
  * Renders article markdown with explicit Tailwind styles.
@@ -7,6 +18,16 @@ import remarkGfm from "remark-gfm";
  * mapped here instead of relying on `prose` classes.
  */
 export function ArticleBody({ body }: { body: string }) {
+  // Headings are rendered in document order, so this counter keeps IDs in sync
+  // with extractHeadings() even when two headings share the same text.
+  const seen = new Map<string, number>();
+  const idFor = (children: React.ReactNode) => {
+    const base = headingId(nodeText(children));
+    const count = (seen.get(base) ?? 0) + 1;
+    seen.set(base, count);
+    return count === 1 ? base : `${base}-${count}`;
+  };
+
   return (
     <div className="max-w-none">
       <ReactMarkdown
@@ -18,12 +39,20 @@ export function ArticleBody({ body }: { body: string }) {
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mb-5 mt-10 font-heading text-3xl font-bold tracking-tight">
+            <h2
+              id={idFor(children)}
+              className="mb-5 mt-10 scroll-mt-24 font-heading text-3xl font-bold tracking-tight"
+            >
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mb-4 mt-8 font-heading text-2xl font-bold">{children}</h3>
+            <h3
+              id={idFor(children)}
+              className="mb-4 mt-8 scroll-mt-24 font-heading text-2xl font-bold"
+            >
+              {children}
+            </h3>
           ),
           p: ({ children }) => (
             <p className="mb-6 text-lg leading-relaxed text-foreground/80">{children}</p>

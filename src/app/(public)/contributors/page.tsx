@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Users } from "lucide-react";
 
-export const metadata = { title: 'Contributors | Agentverse' };
+export const metadata = { title: 'Contributors' };
 
 export default async function ContributorsPage() {
   const contributors = await db.contributorProfile.findMany({
@@ -24,7 +24,7 @@ export default async function ContributorsPage() {
               Platform <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Contributors</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
-              Meet the researchers, engineers, and writers who make Agentverse the premier directory for autonomous AI.
+              Meet the researchers, engineers, and writers who make Tecrese the premier directory for autonomous AI.
             </p>
           </div>
         </ScrollReveal>

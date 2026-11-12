@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'
 
 type SEOProps = {
   title: string
@@ -39,7 +39,7 @@ export function generateMetadata({
       title,
       description,
       url,
-      siteName: 'Agentverse',
+      siteName: 'Tecrese',
       type,
       images: [
         {
@@ -92,10 +92,10 @@ export function generateArticleStructuredData(article: {
     } : undefined,
     publisher: {
       '@type': 'Organization',
-      name: 'Agentverse',
+      name: 'Tecrese',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/logo.png`
+        url: `${SITE_URL}/images/brand/logo.png`
       }
     },
     mainEntityOfPage: {
@@ -146,13 +146,13 @@ export function generateOrganizationStructuredData(): object {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Agentverse',
+    name: 'Tecrese',
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
+    logo: `${SITE_URL}/images/brand/logo.png`,
     description: 'An intelligence and discovery platform for the agentic internet.',
     sameAs: [
       'https://twitter.com/tecrese',
-      'https://github.com/tecrese'
+      'https://github.com/17prabhanshu/didu'
     ]
   }
 }
@@ -161,7 +161,7 @@ export function generateWebSiteStructuredData(): object {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Agentverse',
+    name: 'Tecrese',
     url: SITE_URL,
     potentialAction: {
       '@type': 'SearchAction',

@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { TiltCard } from "@/components/animations/tilt-card";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 
-export const metadata = { title: 'Guides & Tutorials | Agentverse' };
+export const metadata = { title: 'Guides & Tutorials' };
 
 const FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=800&auto=format&fit=crop",

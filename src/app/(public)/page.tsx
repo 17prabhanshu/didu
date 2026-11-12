@@ -1,19 +1,18 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { ArticleCard } from '@/components/cards/article-card';
 import { AgentCard } from '@/components/cards/agent-card';
 import { ToolCard } from '@/components/cards/tool-card';
 import { ModelCard } from '@/components/cards/model-card';
-import { AnimatedHero } from '@/components/animations/animated-hero';
 import { ScrollReveal } from '@/components/animations/scroll-reveal';
 import { TiltCard } from '@/components/animations/tilt-card';
 import { Marquee } from '@/components/animations/marquee';
 import { NewsletterForm } from '@/components/newsletter/newsletter-form';
 
 export const metadata = {
-  title: 'Agentverse | The Intelligence Layer for the Agentic Internet',
-  description: 'Discover and compare agents, tools, and models.',
+  title: { absolute: 'Tecrese - The Intelligence Layer for the Agentic Internet' },
+  description: 'Discover, compare, and integrate the best AI agents, tools, models, and MCP servers. Free guides, launchpad setup, and independent reviews.',
 };
 
 export default async function HomePage() {
@@ -51,27 +50,33 @@ export default async function HomePage() {
         <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center">
 
 
-          <h1 className="text-[12vw] sm:text-[8vw] md:text-[6rem] leading-[0.9] font-heading font-black tracking-tighter text-center uppercase mb-8">
+          <h1 className="text-[clamp(2.5rem,9vw,6rem)] leading-[0.95] font-heading font-black tracking-tighter text-center uppercase mb-6 sm:mb-8 px-1 break-words text-balance">
             <span className="block">The Intelligence</span>
             <span className="block text-outline-accent italic">Layer</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl text-center font-medium mb-12">
+          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl text-center font-medium mb-8 sm:mb-12 px-2">
             Discover, compare, and integrate the next generation of AI agents, tools, and models.
           </p>
-          
-          <ScrollReveal delay={0.2} direction="up" className="flex flex-col sm:flex-row gap-6 justify-center w-full sm:w-auto">
-            <Link href="/agents" className="group relative px-10 py-5 bg-foreground text-background rounded-full font-bold uppercase tracking-wider overflow-hidden">
+
+          {/* Above-the-fold CTAs are intentionally not wrapped in ScrollReveal:
+              they must render visible without JavaScript for LCP and conversion. */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center w-full sm:w-auto px-2">
+            <Link href="/agents" className="group relative w-full sm:w-auto text-center px-8 py-4 sm:px-10 sm:py-5 bg-foreground text-background rounded-full font-bold uppercase tracking-wider overflow-hidden">
               <span className="relative z-10 group-hover:text-primary-foreground transition-colors duration-300">Explore Agents</span>
               <div className="absolute inset-0 h-full w-full bg-primary transform scale-y-0 origin-bottom group-hover:scale-y-100 transition-transform duration-300 ease-in-out"></div>
             </Link>
-            <Link href="/news" className="group px-10 py-5 bg-transparent border border-foreground/20 hover:border-foreground text-foreground rounded-full font-bold uppercase tracking-wider transition-all">
-              Read Latest <span className="inline-block group-hover:translate-x-2 transition-transform">&rarr;</span>
-            </Link>
-            <Link href="/launchpad" className="group px-10 py-5 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-wider transition-all hover:opacity-90">
+            <Link href="/launchpad" className="group w-full sm:w-auto text-center px-8 py-4 sm:px-10 sm:py-5 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-wider transition-all hover:opacity-90">
               AI Launchpad <span className="inline-block group-hover:translate-x-2 transition-transform">&rarr;</span>
             </Link>
-          </ScrollReveal>
+            <Link href="/news" className="group w-full sm:w-auto text-center px-8 py-4 sm:px-10 sm:py-5 bg-transparent border border-foreground/20 hover:border-foreground text-foreground rounded-full font-bold uppercase tracking-wider transition-all">
+              Read Latest <span className="inline-block group-hover:translate-x-2 transition-transform">&rarr;</span>
+            </Link>
+          </div>
+
+          <p className="mt-6 text-xs sm:text-sm text-muted-foreground/80 text-center font-mono">
+            Free · No signup · Copy-paste setup for 6 AI tools
+          </p>
         </div>
       </section>
 

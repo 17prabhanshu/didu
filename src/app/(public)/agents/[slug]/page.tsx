@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
@@ -10,7 +10,7 @@ import { generateMetadata as getSeoMetadata, generateEntityStructuredData } from
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const agent = await db.agent.findUnique({ where: { slug } });
-  if (!agent) return { title: 'Agent Not Found | Tecrese' };
+  if (!agent) return { title: 'Agent Not Found' };
 
   return getSeoMetadata({
     title: `${agent.name} - AI Agent Review, Capabilities & Architecture`,

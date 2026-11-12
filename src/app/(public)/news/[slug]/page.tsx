@@ -1,15 +1,25 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
-import { ScrollReveal } from "@/components/animations/scroll-reveal";
+import { notFound, redirect } from "next/navigation";
 import { ArticleBody } from "@/components/article/article-body";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-
-// Using dynamicParams = true (default) allows on-demand rendering of paths not in generateStaticParams
+import { Clock, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArticleJSONLD, BreadcrumbJSONLD } from "@/components/seo/JSONLD";
+import { extractHeadings } from "@/lib/toc";
+import { findToolForArticle } from "@/lib/related-tool";
+import {
+  ArticleNewsletter,
+  AuthorBio,
+  RelatedArticles,
+  ShareLinks,
+  TableOfContents,
+  ToolSetupCard,
+} from "@/components/article/article-extras";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -22,16 +32,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       seoTitle: true,
       seoDescription: true,
       contentType: true,
+      featuredImage: true,
     },
   });
 
-  if (!article) return { title: 'Article Not Found | Tecrese' };
+  if (!article) return { title: 'Article Not Found' };
 
   const isGuide = article.contentType === 'GUIDE' || article.contentType === 'TUTORIAL';
   const canonical = `${SITE_URL}/${isGuide ? 'guides' : 'news'}/${slug}`;
 
   return {
-    title: article.seoTitle || `${article.title} | Tecrese`,
+    title: article.seoTitle || article.title,
     description: article.seoDescription || article.excerpt || article.subtitle || undefined,
     alternates: { canonical },
     openGraph: {
@@ -39,6 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: article.seoDescription || article.excerpt || undefined,
       url: canonical,
       type: 'article',
+      images: article.featuredImage ? [article.featuredImage] : undefined,
     },
   };
 }
@@ -53,8 +65,60 @@ export default async function ArticleReadingPage({ params }: { params: Promise<{
 
   if (!article) return notFound();
 
+  // Guides have a canonical home under /guides. Redirect rather than render a
+  // duplicate copy of the same article under /news.
+  if (article.contentType === 'GUIDE' || article.contentType === 'TUTORIAL') {
+    redirect(`/guides/${slug}`);
+  }
+
+  const related = await db.article.findMany({
+    where: { status: 'PUBLISHED', slug: { not: slug } },
+    orderBy: { publishedAt: 'desc' },
+    take: 3,
+    include: { author: true, category: true },
+  });
+
+  const publishedAt = article.publishedAt || article.createdAt;
+  const updatedAt = article.updatedAt;
+  const showUpdated = updatedAt.getTime() - publishedAt.getTime() > 24 * 60 * 60 * 1000;
+  const articleUrl = `${SITE_URL}/news/${slug}`;
+  const headings = extractHeadings(article.body);
+  const relatedTool = findToolForArticle(
+    article.title,
+    article.subtitle,
+    article.excerpt,
+    article.body
+  );
+  const description = article.seoDescription || article.excerpt || article.subtitle || article.title;
+
   return (
     <article className="relative min-h-screen pb-24">
+      <ArticleJSONLD
+        type="NewsArticle"
+        title={article.title}
+        description={description}
+        url={articleUrl}
+        image={article.featuredImage || FALLBACK_IMAGE}
+        datePublished={publishedAt.toISOString()}
+        dateModified={updatedAt.toISOString()}
+        author={{
+          name: article.author?.name || 'Tecrese Editorial Team',
+          url: article.author?.slug
+            ? `${SITE_URL}/authors/${article.author.slug}`
+            : `${SITE_URL}/authors`,
+        }}
+        category={article.category?.name}
+        tags={article.keywords?.split(',').map((keyword) => keyword.trim()).filter(Boolean)}
+        readingTime={article.readingTime ?? 5}
+      />
+      <BreadcrumbJSONLD
+        items={[
+          { name: 'Home', url: SITE_URL },
+          { name: 'News', url: `${SITE_URL}/news` },
+          { name: article.title, url: articleUrl },
+        ]}
+      />
+
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[radial-gradient(circle,var(--tw-gradient-stops))] from-primary/10 via-primary/5 to-transparent mix-blend-multiply pointer-events-none -z-10" />
       <div className="absolute top-[20vh] left-0 w-[30vw] h-[30vw] bg-[radial-gradient(circle,var(--tw-gradient-stops))] from-accent/10 via-accent/5 to-transparent mix-blend-multiply pointer-events-none -z-10 dark:bg-emerald-900/10" />
@@ -62,112 +126,102 @@ export default async function ArticleReadingPage({ params }: { params: Promise<{
       {/* Hero Section */}
       <header className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 border-b border-border/30 bg-card/30 backdrop-blur-md">
         <div className="container mx-auto max-w-4xl text-center">
-          <ScrollReveal>
-            <div className="flex items-center justify-center gap-3 mb-8">
-              {article.category && (
-                <Badge variant="secondary" className="px-3 py-1 font-mono">{article.category.name}</Badge>
-              )}
-              <Badge className="px-3 py-1 bg-primary/20 text-primary hover:bg-primary/30">{article.contentType}</Badge>
-              <span className="text-sm font-mono text-muted-foreground">{article.readingTime} min read</span>
-            </div>
-            
-            <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-              {article.title}
-            </h1>
-            
-            {article.subtitle && (
-              <p className="text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-                {article.subtitle}
-              </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+            {article.category && (
+              <Badge variant="secondary" className="px-3 py-1 font-mono">{article.category.name}</Badge>
             )}
+            <Badge className="px-3 py-1 bg-primary/20 text-primary hover:bg-primary/30">{article.contentType}</Badge>
+            <span className="text-sm font-mono text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" /> {article.readingTime} min read
+            </span>
+            {showUpdated && (
+              <span className="text-sm font-mono text-muted-foreground flex items-center gap-1">
+                <RefreshCw className="w-3.5 h-3.5" /> Updated {formatDate(updatedAt)}
+              </span>
+            )}
+          </div>
 
-            <div className="flex items-center justify-center gap-4 text-left">
+          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
+            {article.title}
+          </h1>
+
+          {article.subtitle && (
+            <p className="text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+              {article.subtitle}
+            </p>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-4 text-left">
               <div className="w-14 h-14 rounded-full bg-primary/20 overflow-hidden ring-4 ring-background">
-                {article.author?.avatar && <img src={article.author.avatar} alt={article.author.name} className="w-full h-full object-cover" />}
+                {article.author?.avatar && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={article.author.avatar} alt={article.author.name} className="w-full h-full object-cover" />
+                )}
               </div>
               <div>
-                <div className="font-bold text-lg">{article.author?.name || 'Industry Analyst'}</div>
+                <div className="font-bold text-lg">{article.author?.name || 'Tecrese Editorial Team'}</div>
                 <div className="text-sm text-muted-foreground font-mono">
-                  {article.publishedAt ? formatDate(article.publishedAt) : formatDate(article.createdAt)}
+                  Published {formatDate(publishedAt)}
+                  {showUpdated ? ` · Updated ${formatDate(updatedAt)}` : ''}
                 </div>
               </div>
             </div>
-          </ScrollReveal>
+            <ShareLinks url={articleUrl} title={article.title} />
+          </div>
         </div>
       </header>
 
-      {/* Featured Image or Pinterest Editorial Art */}
+      {/* Featured Image or Editorial Art */}
       <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 -mt-12 relative z-10 mb-16">
-        <ScrollReveal delay={0.2}>
-          <div className="w-full aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/30 bg-muted">
-            {article.featuredImage ? (
-              <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover" />
-            ) : (
-              <img src={`https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop`} alt="Editorial Art" className="w-full h-full object-cover" />
-            )}
-          </div>
-        </ScrollReveal>
+        <div className="w-full aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-border/30 bg-muted">
+          {article.featuredImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={FALLBACK_IMAGE} alt="Editorial illustration" className="w-full h-full object-cover" />
+          )}
+        </div>
       </div>
 
       {/* Article Body */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl mt-16">
-        <ScrollReveal delay={article.featuredImage ? 0 : 0.2}>
-          <ArticleBody body={article.body} />
-        </ScrollReveal>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+          <div className="order-2 min-w-0 lg:order-1">
+            <ArticleBody body={article.body} />
 
-        {/* E-E-A-T Editorial Trust Signals */}
-        <div className="mt-16 bg-muted/30 border border-border rounded-3xl p-8">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            </div>
-            <div>
-              <h4 className="font-bold text-lg">Editorial Standards Applied</h4>
-              <p className="text-sm text-muted-foreground">This content has been independently verified by the Agentverse Intelligence Team.</p>
-            </div>
-          </div>
-        </div>
+            {relatedTool ? <ToolSetupCard tool={relatedTool} /> : null}
 
-        <div className="mt-16 pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Agentverse. All rights reserved.
+            {/* E-E-A-T Editorial Trust Signal */}
+            <div className="mt-16 bg-muted/30 border border-border rounded-3xl p-6 sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">Editorial standards applied</h4>
+                  <p className="text-sm text-muted-foreground">
+                    This content was independently reviewed by the Tecrese Intelligence Team.{' '}
+                    <Link href="/about/editorial-policy" className="font-semibold text-primary hover:underline">
+                      Read our editorial policy
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <AuthorBio author={article.author} />
+            <ArticleNewsletter />
+            <RelatedArticles articles={related} href="/news" label="All news" />
           </div>
-          <Link href="/about/editorial-policy" className="text-sm font-bold text-primary hover:underline">
-            Read our Editorial Policy
-          </Link>
+
+          <aside className="order-1 lg:order-2 lg:self-start">
+            <TableOfContents headings={headings} />
+          </aside>
         </div>
       </div>
-
-      {/* Strict Publisher & Article Schema Injection for Google HCU E-E-A-T */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "NewsArticle",
-            "headline": article.title,
-            "description": article.subtitle || article.excerpt,
-            "image": [
-              article.featuredImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop"
-            ],
-            "datePublished": article.publishedAt || article.createdAt,
-            "dateModified": article.updatedAt,
-            "author": {
-              "@type": "Person",
-              "name": article.author?.name || 'Industry Analyst',
-              "url": "https://tecrese.com/editorial-team"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "Agentverse",
-              "logo": {
-                "@type": "ImageObject",
-                "url": "https://tecrese.com/logo.png"
-              }
-            }
-          })
-        }}
-      />
     </article>
   );
 }

@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Code2 } from "lucide-react";
 
-export const metadata = { title: 'Agent Frameworks | Agentverse' };
+export const metadata = { title: 'Agent Frameworks' };
 
 export default async function FrameworksPage() {
   const frameworks = await db.framework.findMany({

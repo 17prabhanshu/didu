@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
@@ -8,7 +8,7 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const alert = await db.securityAlert.findUnique({ where: { slug } });
-  return { title: alert ? `${alert.title} | Security` : 'Alert Not Found' };
+  return { title: alert ? `Security Alert: ${alert.title}` : 'Alert Not Found' };
 }
 
 export default async function SecurityAlertPage({ params }: { params: Promise<{ slug: string }> }) {

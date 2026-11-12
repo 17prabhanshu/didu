@@ -118,7 +118,6 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <Link href="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link>
-            <Link href="/admin/login" className="hover:text-foreground transition-colors ml-auto border border-border px-3 py-1 rounded-full text-xs font-bold uppercase">Admin Login</Link>
           </div>
         </div>
       </div>

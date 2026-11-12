@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { TiltCard } from "@/components/animations/tilt-card";
 import Link from "next/link";
 import { Server } from "lucide-react";
 
-export const metadata = { title: 'MCP Servers | Agentverse' };
+export const metadata = { title: 'MCP Servers' };
 
 export default async function MCPServersPage() {
   const servers = await db.mCPServer.findMany({

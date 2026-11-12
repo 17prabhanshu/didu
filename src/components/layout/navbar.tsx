@@ -106,19 +106,11 @@ export function Navbar() {
             </button>
 
             <Link
-              href="/contact"
+              href="/newsletter"
               className="hidden sm:flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               <Mail className="w-4 h-4" />
-              <span>Get in Touch</span>
-            </Link>
-
-            <Link
-              href="/admin/login"
-              className="hidden md:flex items-center gap-2 bg-muted text-foreground border border-border px-4 py-2 rounded-full text-sm font-medium hover:bg-muted/80 transition-colors"
-            >
-              <span className="w-2 h-2 rounded-full bg-primary/80"></span>
-              Admin
+              <span>Newsletter</span>
             </Link>
 
             <button
@@ -220,12 +212,12 @@ export function Navbar() {
                   Contact Us
                 </Link>
                 <Link
-                  href="/admin/login"
+                  href="/newsletter"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 bg-muted text-foreground border border-border py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-muted/80 transition-colors w-full"
                 >
-                  <span className="w-2 h-2 rounded-full bg-primary/80"></span>
-                  Admin Portal
+                  <Mail className="w-4 h-4" />
+                  Newsletter
                 </Link>
               </div>
             </div>

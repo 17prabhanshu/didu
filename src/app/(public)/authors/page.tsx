@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -6,7 +6,7 @@ import { UserCheck, BookOpen, ArrowRight, Sparkles } from "lucide-react";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
 export const metadata = {
-  title: 'Authors & Analysts | Tecrese',
+  title: 'Authors & Analysts',
   description: 'Meet the researchers, benchmark analysts, and engineers contributing to the Tecrese intelligence index.',
 };
 

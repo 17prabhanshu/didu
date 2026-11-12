@@ -4,7 +4,7 @@ import { ShieldCheck, Cpu, Sparkles, Compass, Mail, ArrowUpRight } from "lucide-
 import { Logo } from "@/components/brand/Logo";
 
 export const metadata = {
-  title: 'About Tecrese | The Intelligence Layer for Autonomous AI',
+  title: 'About',
   description: 'Tecrese is the premier directory, benchmarking index, and intelligence layer for autonomous AI agents, developer tooling, and foundational models.',
 };
 

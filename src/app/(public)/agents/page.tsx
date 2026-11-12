@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { TiltCard } from "@/components/animations/tilt-card";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = { title: 'Agents Directory | Agentverse' };
+export const metadata = { title: 'Agents Directory' };
 
 export default async function AgentsPage() {
   const agents = await db.agent.findMany({

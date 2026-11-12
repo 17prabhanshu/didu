@@ -1,6 +1,6 @@
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
 
-export const metadata = { title: 'Privacy Policy | Agentverse' };
+export const metadata = { title: 'Privacy Policy' };
 
 export default function PrivacyPolicyPage() {
   return (
@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         <ScrollReveal delay={0.1}>
           <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-heading prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-a:text-primary">
             <p className="lead text-xl">
-              At Agentverse, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform, use our API, or interact with our AI agents and services.
+              At Tecrese, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform, use our API, or interact with our AI agents and services.
             </p>
 
             <h2>1. Information We Collect</h2>

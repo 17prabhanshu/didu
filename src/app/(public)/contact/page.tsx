@@ -2,7 +2,7 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 import { Mail, MapPin, Phone, MessageSquare } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
 
-export const metadata = { title: 'Get in Touch | Tecrese' };
+export const metadata = { title: 'Get in Touch' };
 
 export default function ContactPage() {
   return (

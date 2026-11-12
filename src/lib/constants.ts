@@ -1,9 +1,9 @@
 export const siteConfig = {
-  name: 'Agentverse',
+  name: 'Tecrese',
   description: 'An intelligence and discovery platform for the agentic internet.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-  ogImage: '/images/og-default.png',
-  creator: 'Agentverse',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com',
+  ogImage: '/api/og?type=default',
+  creator: 'Tecrese',
   keywords: ['AI agents', 'AI tools', 'AI models', 'MCP', 'agent security', 'agentic AI'],
   links: {
     twitter: '',

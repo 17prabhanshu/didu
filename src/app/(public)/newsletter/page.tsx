@@ -7,7 +7,7 @@ import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = {
-  title: 'Newsletter & Intelligence Briefings | Tecrese',
+  title: 'Newsletter & Intelligence Briefings',
   description: 'Weekly intelligence briefing on autonomous AI agents, developer tooling, and foundational models.',
 };
 

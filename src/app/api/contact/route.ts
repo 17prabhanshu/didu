@@ -176,7 +176,7 @@ export async function POST(req: Request) {
               data: {
                 name: 'Intelligence Desk',
                 slug: 'intelligence-desk',
-                bio: 'Agentverse internal research team.',
+                bio: 'Tecrese internal research team.',
               },
             }));
           await withTimeout(

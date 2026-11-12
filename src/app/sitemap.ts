@@ -1,22 +1,33 @@
 export const dynamic = 'force-dynamic';
 import { MetadataRoute } from 'next'
 import { db } from '@/lib/db'
+import { AI_TOOLS } from '@/lib/ai-launchpad'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tecrese.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     '', '/agents', '/tools', '/models', '/guides', '/dictionary',
     '/news', '/security', '/frameworks', '/mcp-servers', '/build',
-    '/launchpad', '/about', '/privacy', '/terms', '/contact'
+    '/launchpad', '/authors', '/contributors', '/newsletter',
+    '/about', '/privacy', '/terms', '/cookies', '/contact'
   ]
 
   const sitemapEntries: MetadataRoute.Sitemap = staticPages.map((route) => ({
     url: `${SITE_URL}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily',
-    priority: route === '' ? 1 : 0.8,
+    priority: route === '' || route === '/launchpad' ? 1 : 0.8,
   }))
+
+  AI_TOOLS.forEach((tool) => {
+    sitemapEntries.push({
+      url: `${SITE_URL}/launchpad/${tool.id}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    })
+  })
 
   try {
     const agents = await db.agent.findMany({

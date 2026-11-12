@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ScrollReveal } from "@/components/animations/scroll-reveal";
@@ -10,7 +10,7 @@ import { generateMetadata as getSeoMetadata, generateEntityStructuredData } from
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const tool = await db.tool.findUnique({ where: { slug } });
-  if (!tool) return { title: 'Tool Not Found | Tecrese' };
+  if (!tool) return { title: 'Tool Not Found' };
   
   return getSeoMetadata({
     title: `${tool.name} - AI Developer Tool Review & Specs`,

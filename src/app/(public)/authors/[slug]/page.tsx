@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -10,10 +10,10 @@ import { ScrollReveal } from "@/components/animations/scroll-reveal";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const author = await db.author.findUnique({ where: { slug } });
-  if (!author) return { title: 'Author Not Found | Tecrese' };
+  if (!author) return { title: 'Author Not Found' };
 
   return {
-    title: `${author.name} - Profile & Articles | Tecrese`,
+    title: `${author.name} - Profile & Articles`,
     description: author.bio || `Explore articles and research published by ${author.name} on Tecrese.`,
   };
 }
